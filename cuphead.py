@@ -5,6 +5,22 @@ from pico2d import *
 #character1 = load_image('')
 #character.clip_draw(self,left,bottom,width,height,x,y,w,h)
 
+class Cup_Head_running:
+    def __init__(self):
+        self.image = load_image('running.png')  ## 달리기 이미지 로드
+        self.x,self.y  = 400,90
+
+    def update(self):
+        self.x += dirx * 5
+        self.y += diry * 5
+
+
+    def draw(self):
+        self.clip_draw((self.frame * 157) + 24, 265 * de, 157, 264,self.x ,self.y)  ##달리기 자르는 거
+        self.frame = (self.frame + 1) % 15
+
+
+
 
 '''목표조건
     1. 캐릭터가 움직이도록 한다 좌우이동, 제자리, 위(점프),아래(앉기)
@@ -42,9 +58,7 @@ def handle_events():   #이벤트
                 de = 1
                 dirx -= 3
             elif event.key == SDLK_DOWN: ##아래
-                if(running == True):
-                    running = False
-                    duck = True
+                    pass
             elif event.key == SDLK_ESCAPE:## esc
                 running = False
 
@@ -56,8 +70,7 @@ def handle_events():   #이벤트
                 de = 1
                 dirx += 3
             elif event.key == SDLK_DOWN:##아래
-                duck = False
-                running = True
+                pass
 
 
 
@@ -65,7 +78,6 @@ def handle_events():   #이벤트
 
 open_canvas(1800,900)
 
-im_run = load_image('running.png') ## 달리기 이미지 로드
 im_gs = load_image('ghost2.png')##유령모드 이미지 로드
 im_jum = load_image('jump.png') ## 점프하는 이미지 로드
 im_down = load_image('duck.png') ##앉기 이미지 로드
@@ -73,17 +85,17 @@ im_down = load_image('duck.png') ##앉기 이미지 로드
 
 x = 1800//2  #맵 가로
 y = 900//2  #맵 세로
-frame = 0
+'''frame = 0
 de = 0
 dirx = 0
-diry = 0
+diry = 0'''
 
 #ghost = True
 
-#running = True
+running = True
 #jumping = True
 #duck = False
-jumping = True
+
 ##유령모드
 '''while(ghost):
     clear_canvas()
@@ -94,30 +106,26 @@ jumping = True
 '''
 
 #달리기   -- 가속도 추가 추가해야함 달리기에
-'''while(running):
-    clear_canvas()
-    im_run.clip_draw((frame *157)+24, 265 * de ,157, 264,x,y)##달리기 자르는 거
-
-    update_canvas()
-
+while(running):
     handle_events()
-    frame = (frame + 1) % 15  # 아래 위 액자크기 x,y
-    x += dirx * 5
-    y += diry * 5
-    delay(0.05)'''
+
+    clear_canvas()
+    Cup_Head_running.draw()
+    update_canvas()
+    delay(0.05)
 
 #점프
-while(jumping):
+'''while(jumping):
     clear_canvas()
     im_jum.clip_draw((frame * 124) ,0,127,125,x,y)
     update_canvas()
 
     frame = (frame +1) % 15
     delay(0.01)
-
 '''
 #앉기
 #수정필요 오류 걸림 앉기 후 바로 꺼짐
+'''
 while(duck):
     clear_canvas()
     im_down.clip_draw((frame *171),0,162,132,x,y)
