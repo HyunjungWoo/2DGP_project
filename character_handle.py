@@ -4,7 +4,7 @@ from character import state, direction
 
 # 캐릭터 속성 변경은 여기서
 
-quitMassage = False
+done = False
 
 
 def check_bottom(player):  # 바닥체크
@@ -14,12 +14,12 @@ def check_bottom(player):  # 바닥체크
 def events(CupHead):
     global state
     global direction
-    global quitMassage
+    global done
 
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:  # 종료
-            quitMassage = True
+            done = True
         elif event.type == SDL_KEYDOWN:
             if event.key == SDLK_RIGHT:  # 오른쪽 키 눌림
                 CupHead.dirx += 1
@@ -36,13 +36,22 @@ def events(CupHead):
                     CupHead.run_Frame = 0  # 프레임 초기화
 
             elif event.key == SDLK_UP:
+                pass
+            elif event.key == SDLK_z:
                 
-                if ( CupHead.state != state['JUMPING']):
+                if (CupHead.state != state['JUMPING']):
                      CupHead.state = state['JUMPING'] 
-                     CupHead.jumpSpeed  = 8
-                
-               
-               
+                     CupHead.jumpSpeed= 8
+
+            elif event.key == SDLK_c:
+                #if event.key == SDLK_UP:
+                CupHead.state = state['Aim']
+                CupHead.stay_frame = 1
+
+            elif event.key == SDLK_v:
+                if(CupHead.direction == direction['RIGHT']):
+                    CupHead.state = state['Paring']
+                    CupHead.paring_frame = 1
 
                 pass
 
@@ -64,9 +73,20 @@ def events(CupHead):
                 if CupHead.state != state['JUMPING']:
                     CupHead.state = state['STAY']
                     CupHead.stay_frame = 0
-            elif event.key == SDLK_UP:
+            elif event.key == SDLK_z:
                 CupHead.state = state['JUMPING']
 
-            elif event.key == SDLK_s:
+            elif event.key == SDLK_c:
+                if(CupHead.state == state['Aim']):
+                    CupHead.state = state['STAY']
+                    CupHead.stay_frame = 1
+
+            elif event.key == SDLK_v:
+                if (CupHead.state == state['Paring']):
+                    CupHead.state = state['STAY']
+                    CupHead.stay_frame = 1
+
+
+
                 pass
     pass

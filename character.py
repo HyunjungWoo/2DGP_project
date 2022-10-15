@@ -1,6 +1,7 @@
 from pico2d import *
-state = {'STAY': 0, 'RUNNING' : 1,'JUMPING':2}
+state = {'STAY': 0, 'RUNNING' : 1,'JUMPING':2,'Aim' : 3,'Paring':4}
 direction = {'LEFT': 0, 'RIGHT':1 }
+
 
 class CupHead:
     def __init__(self):
@@ -8,24 +9,49 @@ class CupHead:
         self.stay_frame = 0
         self.run_frame = 0
         self.jump_frame = 0
+        self.aim_frame = 1
+        self.paring_frame = 1
         self.image = load_image('stay.png')
         self.state = state['STAY']
         self.direction = direction['RIGHT']
         self.jumpSpeed = 0
         self.dirx = 0
         self.mass = 2 # 무게
-        
+        self.bullet_image = load_image('resource/aim/shoot_img/shooting1.png')
+
+
     def update(self):
         if (self.state == state['RUNNING'] ):
             self.image = load_image('run_right.png') #오른쪽으로 달리고 있는 이미지
             self.run_frame = (self.run_frame +1) % 16
+
         elif(self.state == state['STAY']):
             self.image = load_image('stay.png') #왼쪽 보는 stay이미지
-            self.stay_frame = (self.stay_frame +1) %5
+            self.stay_frame = (self.stay_frame +1) % 5
+
+        elif (self.state == state['Aim']):
+            if self.aim_frame == 6:
+                self.aim_frame = 1
+            self.image = load_image('resource/aim/Straight/cuphead_aim_straight_000%d.png' % (self.aim_frame))
+            self.aim_frame = (self.aim_frame + 1) % 5
+            self.aim_frame += 1
+
+
+        elif(self.state == state['Paring']):
+            if self.paring_frame == 8:
+                self.paring_frame = 1
+            self.image = load_image('resource/aim/special_attack/Straight/Ground/paring(%d).png' % (self.paring_frame)) #캐릭터 발사모션
+            self.bullet_image = load_image('resource/aim/shoot_img/shooting_%d.png' % (self.paring_frame)) # 슈팅이미지
+            self.paring_frame = (self.paring_frame + 1) % 7
+            self.paring_frame += 1
+
+
         elif(self.state == state['JUMPING']):
 
             self.image = load_image('jumping.png')
             self.jump_frame = (self.jump_frame +1) % 8
+
+
 
             if self.jumpSpeed > 0:
                  F = (0.5 * self.mass * (self.jumpSpeed **2))
@@ -41,27 +67,46 @@ class CupHead:
                 self.state = state['STAY']
                 self.jumpSpeed = 8
 
-        self.x = self.x + self.dirx * 5
+        self.x = self.x + self.dirx * 7.5
     
     def draw(self):
+        if (self.state == state['Aim']):
+            if (self.direction == direction['RIGHT']):
+                self.image.clip_composite_draw(0,0,self.image.w ,self.image.h,0,'n',self.x,self.y)
+                delay(0.02)
+            elif(self.direction == direction['LEFT']):
+                self.image.clip_composite_draw(0, 0, self.image.w, self.image.h, 0, 'h', self.x, self.y)
+                delay(0.02)
+
+        if (self.state == state['Paring']):
+            if (self.direction == direction['RIGHT']):
+
+                self.image.clip_composite_draw(0, 0, self.image.w, self.image.h, 0, 'n', self.x, self.y,self.image.w, self.image.h)
+                self.bullet_image.clip_composite_draw(0, 0, self.bullet_image.w, self.bullet_image.h, 0, 'n', self.x+100, self.y)
+
+
+            elif (self.direction == direction['LEFT']):
+                pass
 
 
         if (self.state == state['STAY']):
             if (self.direction == direction['LEFT']):
                 self.image.clip_composite_draw(self.stay_frame * 169,330, 169, 225, 0, 'n', self.x-10, self.y, 169,225)
+
             elif(self.direction == direction['RIGHT']):
-                self.image.clip_composite_draw(self.stay_frame * 169,330, 169, 225, 0, 'h', self.x+10, self.y, 169,225)
-    
+                self.image.clip_composite_draw(self.stay_frame * 169,330, 169, 225, 0, 'h', self.x+100, self.y, 169,225)
 
         if (self.state == state['RUNNING']):
             if (self.direction == direction['LEFT']):
                 self.image.clip_composite_draw(self.run_frame * 190, 0,190, 239, 0,'h',self.x, self.y,190,239) ## 달리기 오른쪽으로 #달리기 이미지
+
             elif(self.direction == direction['RIGHT']):
                 self.image.clip_composite_draw(self.run_frame * 190, 0,190, 239, 0,'n',self.x, self.y,190,239)
-    
+
         if (self.state == state['JUMPING']):
             if (self.direction == direction['RIGHT']):
-                self.image.clip_composite_draw(self.jump_frame * 151, 0, 151, 179, 0, 'n', self.x, self.y, 151, 179) ## 330 간격으로 bottom 잡기 stay 이미지
+                self.image.clip_composite_draw(self.jump_frame * 151, 0, 151, 179, 0, 'n', self.x, self.y, 151, 179)
+
             elif (self.direction == direction['LEFT']):
                 self.image.clip_composite_draw(self.jump_frame * 151, 0, 151, 179, 0, 'h', self.x, self.y, 151, 179)
 
@@ -77,11 +122,12 @@ class Potato_Monster:
         self.x,self.y = 750,300
     def update(self):
         self.frame = (self.frame + 1) % self.sin
+
     def draw(self):
         #self.appear_motion()
 
         self.attack_draw()
-        if(self.print>=12):
+        if(self.print >= 12):
             self.ddong_draw()
             
     def appear_motion(self):
