@@ -15,14 +15,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="소스.py">
+    <ClCompile Include="소스.cpp">
       <Filter>소스 파일</Filter>
-    </None>
-    <None Include="소스2.py">
-      <Filter>소스 파일</Filter>
-    </None>
-    <None Include="소스3.py">
-      <Filter>소스 파일</Filter>
-    </None>
+    </ClCompile>
   </ItemGroup>
 </Project>

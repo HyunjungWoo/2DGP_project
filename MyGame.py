@@ -6,6 +6,7 @@ background_image = load_image('background.png')
 Monster = character_handle.character.Potato_Monster()
 player = character_handle.character.CupHead()
 
+
 '''while (not character_handle.quitMassage):
     player.update()
     Monster.update()
@@ -32,8 +33,10 @@ def runGame():
         clear_canvas()
 
         background_image.draw(600, 450, 1200, 900)
+
         Monster.draw()
         player.draw()
+
         update_canvas()
         delay(0.05)
         character_handle.events(player)

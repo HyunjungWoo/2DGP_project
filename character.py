@@ -1,12 +1,49 @@
 from pico2d import *
+
 state = {'STAY': 0, 'RUNNING' : 1,'JUMPING':2,'Aim' : 3,'Paring':4}
 direction = {'LEFT': 0, 'RIGHT':1 }
+bullets = []
+bulletCount = 0
+class Bullet:
+    def __init__(self, CupHead):
+        self.range = 0
+        self.x = CupHead.x
+        self.y = CupHead.y
+        self.isOn = False
+        self.image = load_image('resource/aim/shoot_img/3.png')
+        self.dir = 1
+        if CupHead.direction == direction['RIGHT']:
+            self.dir = 1
+            self.range = CupHead.x + 600  #사거리
+        elif CupHead.direction == direction['LEFT']:
+            self.dir = -1
+            self.range = CupHead.x - 600
+
+    def update(self):
+        global bulletCount
+        self.x += self.dir * 50
+
+        if not len(bullets) == 0:
+            if self.dir == 1:
+                if self.x >= self.range:
+                    bullets.remove(self)
+            elif self.dir == -1:
+                if self.x <= self.range:
+                    bullets.remove(self)
+
+
+    def draw(self):
+        if self.dir == 1:
+            self.image.draw(self.x,self.y,self.image.w,self.image.h)
+        elif self.dir == -1:
+            self.image.clip_composite_draw(0, 0, self.image.w, self.image.h, 0, 'h', self.x, self.y)
 
 
 class CupHead:
     def __init__(self):
+
         self.x, self.y = 400, 90
-        self.stay_frame = 0
+        self.stay_frame = 1
         self.run_frame = 0
         self.jump_frame = 0
         self.aim_frame = 1
@@ -17,17 +54,25 @@ class CupHead:
         self.jumpSpeed = 0
         self.dirx = 0
         self.mass = 2 # 무게
-        self.bullet_image = load_image('resource/aim/shoot_img/shooting1.png')
+        self.parring_img = load_image('resource/aim/shoot_img/shooting1.png')
 
+    def makeBullets(self):
+        bullets.append(Bullet(self))
 
+    def deleteBullets(self):
+        bullets.remove(Bullet(self))
     def update(self):
-        if (self.state == state['RUNNING'] ):
+        if (self.state == state['RUNNING']):
             self.image = load_image('run_right.png') #오른쪽으로 달리고 있는 이미지
             self.run_frame = (self.run_frame +1) % 16
 
+#
         elif(self.state == state['STAY']):
-            self.image = load_image('stay.png') #왼쪽 보는 stay이미지
-            self.stay_frame = (self.stay_frame +1) % 5
+            if self.stay_frame == 6:
+                self.stay_frame = 1
+            self.image = load_image('resource/idle/idle(%d).png' % (self.stay_frame))
+            self.stay_frame = (self.stay_frame + 1) % 5
+            self.stay_frame += 1
 
         elif (self.state == state['Aim']):
             if self.aim_frame == 6:
@@ -36,12 +81,11 @@ class CupHead:
             self.aim_frame = (self.aim_frame + 1) % 5
             self.aim_frame += 1
 
-
         elif(self.state == state['Paring']):
             if self.paring_frame == 8:
                 self.paring_frame = 1
             self.image = load_image('resource/aim/special_attack/Straight/Ground/paring(%d).png' % (self.paring_frame)) #캐릭터 발사모션
-            self.bullet_image = load_image('resource/aim/shoot_img/shooting_%d.png' % (self.paring_frame)) # 슈팅이미지
+            self.parring_img = load_image('resource/aim/shoot_img/shooting_%d.png' % (self.paring_frame)) # 슈팅이미지
             self.paring_frame = (self.paring_frame + 1) % 7
             self.paring_frame += 1
 
@@ -68,13 +112,19 @@ class CupHead:
                 self.jumpSpeed = 8
 
         self.x = self.x + self.dirx * 7.5
-    
+        for bullet in bullets:
+            bullet.update()
+
+
     def draw(self):
         if (self.state == state['Aim']):
             if (self.direction == direction['RIGHT']):
+
                 self.image.clip_composite_draw(0,0,self.image.w ,self.image.h,0,'n',self.x,self.y)
+
                 delay(0.02)
             elif(self.direction == direction['LEFT']):
+
                 self.image.clip_composite_draw(0, 0, self.image.w, self.image.h, 0, 'h', self.x, self.y)
                 delay(0.02)
 
@@ -82,7 +132,7 @@ class CupHead:
             if (self.direction == direction['RIGHT']):
 
                 self.image.clip_composite_draw(0, 0, self.image.w, self.image.h, 0, 'n', self.x, self.y,self.image.w, self.image.h)
-                self.bullet_image.clip_composite_draw(0, 0, self.bullet_image.w, self.bullet_image.h, 0, 'n', self.x+100, self.y)
+                self.parring_img.clip_composite_draw(0, 0, self.parring_img.w, self.parring_img.h, 0, 'n', self.x + 100, self.y)
 
 
             elif (self.direction == direction['LEFT']):
@@ -91,10 +141,10 @@ class CupHead:
 
         if (self.state == state['STAY']):
             if (self.direction == direction['LEFT']):
-                self.image.clip_composite_draw(self.stay_frame * 169,330, 169, 225, 0, 'n', self.x-10, self.y, 169,225)
+                self.image.clip_composite_draw(0,0, self.image.w, self.image.h, 0, 'h',  self.x, self.y)
 
             elif(self.direction == direction['RIGHT']):
-                self.image.clip_composite_draw(self.stay_frame * 169,330, 169, 225, 0, 'h', self.x+100, self.y, 169,225)
+                self.image.clip_composite_draw(0,0, self.image.w, self.image.h, 0, 'n',  self.x, self.y)
 
         if (self.state == state['RUNNING']):
             if (self.direction == direction['LEFT']):
@@ -110,7 +160,9 @@ class CupHead:
             elif (self.direction == direction['LEFT']):
                 self.image.clip_composite_draw(self.jump_frame * 151, 0, 151, 179, 0, 'h', self.x, self.y, 151, 179)
 
-          
+
+        for bullet in bullets:
+            bullet.draw()
 class Potato_Monster:
     def __init__(self):
         self.frame = 0
@@ -140,4 +192,3 @@ class Potato_Monster:
         self.sin = 12
         self.attack.clip_draw(self.frame * 542, 0, 542, 590, 880, self.y)
         self.print += 1
-

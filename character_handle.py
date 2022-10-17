@@ -1,6 +1,6 @@
 from pico2d import *
 import character
-from character import state, direction
+from character import state, direction, bullets
 
 # 캐릭터 속성 변경은 여기서
 
@@ -41,12 +41,15 @@ def events(CupHead):
                 
                 if (CupHead.state != state['JUMPING']):
                      CupHead.state = state['JUMPING'] 
-                     CupHead.jumpSpeed= 8
+                     CupHead.jumpSpeed = 8
 
             elif event.key == SDLK_c:
-                #if event.key == SDLK_UP:
-                CupHead.state = state['Aim']
-                CupHead.stay_frame = 1
+                if(CupHead.state != state['RUNNING']):
+                    CupHead.state = state['Aim']
+                    CupHead.aim_frame = 1
+                    CupHead.makeBullets()
+
+
 
             elif event.key == SDLK_v:
                 if(CupHead.direction == direction['RIGHT']):
@@ -60,26 +63,27 @@ def events(CupHead):
 
             elif event.key == SDLK_ESCAPE:  # ESC키
                 pass
+
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_RIGHT:
                 CupHead.dirx -= 1
                 CupHead.direction = direction['RIGHT']
                 if CupHead.state != state['JUMPING']:
                     CupHead.state = state['STAY']
-                    CupHead.stay_frame = 0
+                    CupHead.stay_frame = 1
             elif event.key == SDLK_LEFT:
                 CupHead.dirx += 1
                 CupHead.direction = direction['LEFT']
                 if CupHead.state != state['JUMPING']:
                     CupHead.state = state['STAY']
-                    CupHead.stay_frame = 0
+                    CupHead.stay_frame = 1
+
             elif event.key == SDLK_z:
                 CupHead.state = state['JUMPING']
 
+
             elif event.key == SDLK_c:
-                if(CupHead.state == state['Aim']):
-                    CupHead.state = state['STAY']
-                    CupHead.stay_frame = 1
+                pass
 
             elif event.key == SDLK_v:
                 if (CupHead.state == state['Paring']):
@@ -90,3 +94,4 @@ def events(CupHead):
 
                 pass
     pass
+
