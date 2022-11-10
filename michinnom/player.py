@@ -1,7 +1,7 @@
 from pico2d import *
 import game_framework
 
-state = {'IDLE': 0, 'RUNNING' : 1,'JUMPING':2,'AIM' : 3,'DASH':4}
+state = {'IDLE': 0, 'RUNNING' : 1,'JUMPING':2,'AIM' : 3,'DASH':4, 'SHOOT':5, 'RUN_SHOOT':6}
 direction = {'LEFT': -1, 'RIGHT':1 , 'UP':2, 'DOWN':0 }
 
 #Player Run Speed
@@ -56,6 +56,10 @@ class Player:
             Aim_update(player)
         elif player.state == state['DASH']:
             Dash_update(player)
+        elif player.state == state['SHOOT']:
+            Shoot_update(player)
+        elif player.state == state['RUN_SHOOT']:
+            Run_shoot_update(player)
         player.x += player.dirx * 1
         
     def draw(player):
@@ -69,8 +73,10 @@ class Player:
             Aim_draw(player)
         elif player.state == state['DASH']:
             Dash_draw(player)
-
-
+        elif player.state == state['SHOOT']:
+            Shoot_draw(player)
+        elif player.state == state['RUN_SHOOT']:
+            Run_Shoot_draw(player)
     def handle_event(player, event):
         global state
         global direction
@@ -106,12 +112,20 @@ class Player:
                 elif player.state != state['DASH'] and player.state != state['JUMPING']: 
                     player.state = state['AIM']
                     player.frame = 0
-
+            elif event.key == SDLK_x:
+                if player.state != state['DASH'] and player.state != state['JUMPING']:
+                    if player.state == state['IDLE']:
+                        player.state = state['SHOOT']
+                    elif player.state == state['AIM']:
+                        player.state = state['SHOOT']
+                    elif player.state == state['RUNNING']:
+                        player.state = state['RUN_SHOOT']
+                    
             elif event.key == SDLK_UP:
-                if player.state == state['AIM']:
+                if player.state == state['AIM'] or player.state == state['SHOOT']:
                  player.direction = direction['UP']
             elif event.key ==  SDLK_DOWN:
-                if player.state == state['AIM']:
+                if player.state == state['AIM'] or player.state == state['SHOOT']:
                  player.direction = direction['DOWN']
             
             elif event.key == SDLK_z:  
@@ -152,11 +166,19 @@ class Player:
             elif event.key == SDLK_z:
                 pass
             elif event.key == SDLK_c:
-                player.state =  state['IDLE']
-                player.frame = 0 
-                player.direction = direction['RIGHT']
-
-            # elif event.key == SDLK_v:
+                if player.state == state['AIM']:
+                    player.state =  state['IDLE']
+                    player.frame = 0 
+                    player.direction = direction['RIGHT']
+            elif event.key == SDLK_x:
+                player.frame = 0            
+                if player.state == state['RUN_SHOOT']:
+                    player.direction = direction['RIGHT']
+                    player.state = state['RUNNING']                    
+                elif player.state == state['SHOOT']:
+                    player.direction = direction['RIGHT']
+                    player.state = state['IDLE']    
+                # elif event.key == SDLK_v:
             #     if (player.state == state['Paring']):
             #         player.state = state['IDLE']
             #         player.frame = 0
@@ -185,6 +207,17 @@ def Run_draw(player):
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y,player.image.w//1.2, player.image.h//1.2)
     elif player.direction == direction['LEFT']:
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)    
+def Run_shoot_update(player):
+        player.frame = (player.frame + RUN_FRAMES_PER_ACTION * RUN_ACTION_PER_TIME * game_framework.frame_time) % 14
+        player.image = load_image('resource/Run/Shooting/Straight/run_shoot (%d).png' % player.frame)
+        player.x  += player.dirx * game_framework.frame_time *RUN_SPEED_PPS
+def Run_Shoot_draw(player):
+    if player.direction == direction['RIGHT']:
+        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y,player.image.w//1.2, player.image.h//1.2)
+    elif player.direction == direction['LEFT']:
+        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)    
+
+
 def Jump_update(player):  
     
     if player.y < 100:
@@ -210,7 +243,6 @@ def Jump_draw(player):
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)    
 def Aim_update(player):
     player.frame = (player.frame + AIM_FRAMES_PER_ACTION * AIM_ACTION_PER_TIME * game_framework.frame_time) % 5
-    print(player.direction)
     if player.direction == direction['RIGHT'] or player.direction == direction['LEFT']:
         player.image = load_image('resource/aim/Straight/aim_straight(%d).png' % player.frame)
     elif player.direction == direction['UP']:
@@ -243,6 +275,18 @@ def Dash_draw(player):
     elif player.direction == direction['LEFT']:
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)
   
-
+def Shoot_update(player):
+    player.frame = (player.frame + AIM_FRAMES_PER_ACTION * AIM_ACTION_PER_TIME * game_framework.frame_time) % 6
+    if player.direction == direction['RIGHT'] or player.direction == direction['LEFT']:
+        player.image = load_image('resource/Shoot/Straight/shoot_straight (%d).png' % player.frame)
+    elif player.direction == direction['UP']:
+        player.image = load_image('resource/Shoot/Up/shoot_up (%d).png'% player.frame)
+    elif player.direction == direction['DOWN']:
+        player.image = load_image('resource/Shoot/Down/shoot_down (%d).png'% player.frame)
+def Shoot_draw(player):
+    if player.direction == direction['LEFT']:
+        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)
+    else:
+        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y,player.image.w//1.2, player.image.h//1.2) 
 
         
