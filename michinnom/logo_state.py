@@ -7,12 +7,11 @@ image_character = None
 count = 1
 def enter():
     global image, image_character
-    image = load_image('title/title screen/Background/title_screen_background.png')
+    image = load_image('resource/title/title screen/Background/title_screen_background.png')
 
 def exit():
     global image
     del image
-
 
 def update():
     global  count, image_character
@@ -21,12 +20,12 @@ def update():
         count = 1
     count += 1
     delay(0.03)
-    image_character = load_image('title/title screen/Cuphead and Mugman/cuphead_title (%d).png' % count)
+    image_character = load_image('resource/title/title screen/Cuphead and Mugman/cuphead_title (%d).png' % count)
 
 def draw():
     clear_canvas()
     image.clip_draw(0,0,1280,720,640,360)
-    image_character.clip_draw(0, 0, 1280, 720, 640,250,image_character.w//1.2,image_character.h//1.2)
+    image_character.clip_draw(0, 0, 1280, 720, 640,250,image_character.w//1,image_character.h//1)
     update_canvas()
 
 def handle_events():
