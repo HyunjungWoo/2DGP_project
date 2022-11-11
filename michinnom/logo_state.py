@@ -1,6 +1,7 @@
 import game_framework
 from pico2d import *
 import play_state
+import ready_state
 image = None
 image_character = None
 
@@ -34,5 +35,5 @@ def handle_events():
         if event.key == SDLK_ESCAPE or event.type == SDL_QUIT:
             game_framework.quit()
         elif event.type == SDL_KEYDOWN and  event.key == SDLK_SPACE:
-            game_framework.change_state(play_state)
+            game_framework.change_state(ready_state)
 

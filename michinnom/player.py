@@ -2,7 +2,7 @@ from pico2d import *
 import game_framework
 import game_world
 from bullet import Bullet
-state = {'IDLE': 0, 'RUNNING' : 1,'JUMPING':2,'AIM' : 3,'DASH':4, 'SHOOT':5, 'RUN_SHOOT':6}
+state = {'IDLE': 0, 'RUNNING' : 1,'JUMPING':2,'AIM' : 3,'DASH':4, 'SHOOT':5, 'RUN_SHOOT':6, 'DUCK':7}
 direction = {'LEFT': -1, 'RIGHT':1 , 'UP':2, 'DOWN':0 }
 
 #Player Run Speed
@@ -34,6 +34,10 @@ AIM_ACTION_PER_TIME   = 1.0 / AIM_TIME_PER_ACTION
 DASH_FRAMES_PER_ACTION = 8
 DASH_TIME_PER_ACTION   = 1.0
 DASH_ACTION_PER_TIME   = 1.0 / DASH_TIME_PER_ACTION
+
+DUCK_FRAMES_PER_ACTION = 13
+DUCK_TIME_PER_ACTION   = 0.8
+DUCK_ACTION_PER_TIME   = 1.0 / DASH_TIME_PER_ACTION
 # player Event
 
 class Player:
@@ -62,6 +66,8 @@ class Player:
             Shoot_update(player)
         elif player.state == state['RUN_SHOOT']:
             Run_shoot_update(player)
+        elif player.state == state['DUCK']:
+            Duck_update(player)
         player.x += player.dirx * 1
       
     def draw(player):
@@ -77,9 +83,10 @@ class Player:
             Dash_draw(player)
         elif player.state == state['SHOOT']:
             Shoot_draw(player)
-            
         elif player.state == state['RUN_SHOOT']:
             Run_Shoot_draw(player)
+        elif player.state == state['DUCK']:
+            Duck_draw(player)
     
     def fire_bullet(player):
         bullet =  Bullet(player)
@@ -92,7 +99,7 @@ class Player:
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_RIGHT:  # 오른쪽 키 눌림
                 player.direction = direction['RIGHT']
-                if player.state != state['AIM']:
+                if player.state != state['AIM'] or player.state != state['DUCK'] :
                     player.dirx += 1 # x값 증가 
                 
                 if player.state != state['JUMPING'] and player.state != state['DASH'] and player.state != state['AIM']:
@@ -104,7 +111,7 @@ class Player:
                    
             elif event.key == SDLK_LEFT:
                 player.direction = direction['LEFT']  # 왼쪽 키 눌림
-                if player.state != state['AIM']:
+                if player.state != state['AIM']  or player.state != state['DUCK'] :
                    player.dirx -= 1
 
                 if player.state != state['JUMPING'] and player.state != state['DASH'] and player.state != state['AIM']:
@@ -131,13 +138,23 @@ class Player:
                     elif player.state == state['RUNNING']:
                         player.state = state['RUN_SHOOT']
                     
+                    
             elif event.key == SDLK_UP:
                 if player.state == state['AIM'] or player.state == state['SHOOT']:
                  player.direction = direction['UP']
-            elif event.key ==  SDLK_DOWN:
+            
+            elif event.key ==  SDLK_DOWN:    
                 if player.state == state['AIM'] or player.state == state['SHOOT']:
                  player.direction = direction['DOWN']
-            
+                
+                elif  player.state != state['JUMPING'] and player.state !=state['AIM']:
+                    player.state = state['DUCK']
+                    player.dirx = 0 
+                
+                elif player.state == state['IDLE'] and player.direction == direction['DOWN']:
+                    player.state = state['DUCK']
+                    player.dirx =0 
+                
             elif event.key == SDLK_z:  
                 
                 if(player.jump_count < 1 and player.state != state['JUMPING']):
@@ -154,8 +171,10 @@ class Player:
 
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_RIGHT:
-                if player.state != state['AIM']:
-                   player.dirx -= 1
+                if player.state == state['AIM'] or player.state == state['IDLE'] or player.state == state['DUCK']:
+                    player.dirx =0 
+                else:
+                    player.dirx -= 1
                 
                 if player.state != state['JUMPING'] and player.state != state['DASH']:
                     player.state = state['IDLE']
@@ -164,15 +183,20 @@ class Player:
                     player.direction = direction['RIGHT']
 
             elif event.key == SDLK_LEFT:
-                if player.state != state['AIM']:
-                   player.dirx += 1
+                if player.state == state['AIM'] or player.state == state['IDLE'] or player.state == state['DUCK']:
+                    player.dirx =0 
+                else:
+                    player.dirx += 1
+                
                 if player.direction == direction['RIGHT'] and player.state == state['IDLE']:
                     player.direction = direction['LEFT']
                 
                 if player.state != state['JUMPING'] and player.state != state['DASH'] and player.state != state['AIM']:
                     player.state = state['IDLE']
                     player.frame = 0
-                
+            elif event.key == SDLK_DOWN:
+                if player.state != state['SHOOT'] and player.state== state['DUCK']:
+                    player.state = state['IDLE']
             elif event.key == SDLK_z:
                 pass
             elif event.key == SDLK_c:
@@ -185,15 +209,8 @@ class Player:
                 if player.state == state['RUN_SHOOT']:
                     player.state = state['RUNNING']                    
                 elif player.state == state['SHOOT']:
-                    
                     player.state = state['IDLE']    
-                # elif event.key == SDLK_v:
-            #     if (player.state == state['Paring']):
-            #         player.state = state['IDLE']
-            #         player.frame = 0
-            # elif event.key == SDLK_LSHIFT:
-            #     player.state = state['IDLE']
-            #     player.frame = 0
+            
 
 def Idle_update(player): 
     if player.dirx !=0:
@@ -205,7 +222,6 @@ def Idle_draw(player):
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)
     else:
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y,player.image.w//1.2, player.image.h//1.2)
-            #CupHead.image.clip_composite_draw(0, 0, CupHead.image.w, CupHead.image.h, 0, 'n', CupHead.x, CupHead.y,CupHead.image.w//1.2, CupHead.image.h//1.2)
 def Run_update(player):
         player.frame = (player.frame + RUN_FRAMES_PER_ACTION * RUN_ACTION_PER_TIME * game_framework.frame_time) % 16
         player.image = load_image('resource/Run/Normal/run(%d).png' % player.frame)
@@ -244,10 +260,10 @@ def Jump_update(player):
     player.y += round(F) 
     player.jump_height -= 0.05
 def Jump_draw(player):
-    if player.direction == direction['RIGHT']:
-        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y,player.image.w//1.2, player.image.h//1.2)
-    elif player.direction == direction['LEFT']:
-        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)    
+    if player.direction == direction['LEFT']:
+        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)   
+    else:  
+        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y,player.image.w//1.2, player.image.h//1.2)     
 def Aim_update(player):
     player.frame = (player.frame + AIM_FRAMES_PER_ACTION * AIM_ACTION_PER_TIME * game_framework.frame_time) % 5
     if player.direction == direction['RIGHT'] or player.direction == direction['LEFT']:
@@ -294,5 +310,12 @@ def Shoot_draw(player):
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)
     else:
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y,player.image.w//1.2, player.image.h//1.2) 
-
-        
+def Duck_update(player):
+    
+    player.frame = (player.frame + DUCK_FRAMES_PER_ACTION * DUCK_ACTION_PER_TIME * game_framework.frame_time) % 13
+    player.image = load_image('resource/Duck/Idle/duck(%d).png' % player.frame) 
+def Duck_draw(player):
+    if player.direction == direction['LEFT']:
+        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y-30,player.image.w//1.2, player.image.h//1.2)
+    else:
+        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y-30,player.image.w//1.2, player.image.h//1.2) 
