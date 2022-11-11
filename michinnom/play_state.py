@@ -1,12 +1,12 @@
 from pico2d import *
 from player import Player
-from bullet import Bullet
+from boss import Boss_Goopy
 
 import game_framework
 import game_world
 
 player = None
-bullet = None
+boss = None
 def handle_events():
     events = get_events()
     for event in events:
@@ -19,9 +19,11 @@ def handle_events():
 
 # 초기화
 def enter():
-    global player
+    global player,boss
     player = Player()
-    game_world.add_object(player, 1)
+    boss = Boss_Goopy()
+    #game_world.add_object(player, 1)
+    game_world.add_object(boss,1)
 
 
 # 종료
