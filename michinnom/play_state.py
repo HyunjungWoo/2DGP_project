@@ -1,10 +1,12 @@
 from pico2d import *
 from player import Player
+from bullet import Bullet
+
 import game_framework
 import game_world
 
 player = None
-
+bullet = None
 def handle_events():
     events = get_events()
     for event in events:

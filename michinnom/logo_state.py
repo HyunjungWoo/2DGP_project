@@ -36,5 +36,3 @@ def handle_events():
         elif event.type == SDL_KEYDOWN and  event.key == SDLK_SPACE:
             game_framework.change_state(play_state)
 
-
-    #현정아 11/7일 저녁에 핸들로 스페이스바 받으면 메인화면으로 넘어가게 하여라~~~
