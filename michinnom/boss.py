@@ -37,7 +37,9 @@ class Boss_Goopy:
         #self.phase = 1      # 페이즈 1 
    
     def get_bb(self):
-        return self.x - self.image.w/2, self.y -self.image.h/2, self.x + self.image.w/2 , self.y+ self.image.h/2
+        return self.x - self.image.w/2 +50, self.y -self.image.h/2+50, self.x + self.image.w/2 -50,\
+            self.y+ self.image.h/2 -50
+
    
     def update(self):
         

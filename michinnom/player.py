@@ -2,7 +2,7 @@ from pico2d import *
 import game_framework
 import game_world
 from bullet import Bullet
-state = {'IDLE': 0, 'RUNNING' : 1,'JUMPING':2,'AIM' : 3,'DASH':4, 'SHOOT':5, 'RUN_SHOOT':6, 'DUCK':7}
+state = {'IDLE': 0, 'RUNNING' : 1,'JUMPING':2,'AIM' : 3,'DASH':4, 'SHOOT':5, 'RUN_SHOOT':6, 'DUCK':7,'HIT':8}
 direction = {'LEFT': -1, 'RIGHT':1 , 'UP':2, 'DOWN':0 }
 
 #Player Run Speed
@@ -39,7 +39,7 @@ DUCK_FRAMES_PER_ACTION = 13
 DUCK_TIME_PER_ACTION   = 0.8
 DUCK_ACTION_PER_TIME   = 1.0 / DASH_TIME_PER_ACTION
 # player Event
-
+global change_state
 class Player:
     def __init__(player):
         player.x, player.y = 100, 100
@@ -52,7 +52,8 @@ class Player:
         player.dash_count, player.jump_count = 0, 0
     
     def get_bb(player):
-        return player.x - player.image.w/2, player.y -player.image.h/2, player.x + player.image.w/2 , player.y+ player.image.h/2
+        return player.x - player.image.w/2+10, player.y -player.image.h/2+10, player.x + player.image.w/2-5 ,\
+             player.y+ player.image.h/2-10
    
     def update(player):
         if player.state == state['IDLE']:
@@ -71,6 +72,8 @@ class Player:
             Run_shoot_update(player)
         elif player.state == state['DUCK']:
             Duck_update(player)
+        if player.state == state['HIT']:
+            Die_update(player)
         player.x += player.dirx * 1
       
     def draw(player):
@@ -92,11 +95,14 @@ class Player:
             Run_Shoot_draw(player)
         elif player.state == state['DUCK']:
             Duck_draw(player)
-    
+        if player.state == state['HIT']:
+            Die_draw(player)
     def fire_bullet(player):
         bullet =  Bullet(player)
         game_world.add_object(bullet,1)
 
+    def change_state(player,change_state):
+        player.state.value = change_state
     def handle_event(player, event):
         global state
         global direction
@@ -325,4 +331,13 @@ def Duck_draw(player):
     else:
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y-30,player.image.w//1.2, player.image.h//1.2) 
 
-    
+def Die_update(player):
+    player.frame = (player.frame + DUCK_FRAMES_PER_ACTION * DUCK_ACTION_PER_TIME * game_framework.frame_time) % 7
+    player.image = load_image('resource/Hit/Ground/cuphead_hit_000%d.png' % player.frame) 
+
+def Die_draw(player):
+    print('DRAW')
+    if player.direction == direction['LEFT']:
+        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)
+    else:
+        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y,player.image.w//1.2, player.image.h//1.2) 

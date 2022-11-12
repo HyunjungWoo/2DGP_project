@@ -35,6 +35,7 @@ class Bullet:
       
 
     def draw(self):
+        draw_rectangle(*self.get_bb())
         if self.dirx == 1:
             self.image.draw(self.x,self.y,self.image.w,self.image.h)
         elif self.dirx == -1:
@@ -44,4 +45,6 @@ class Bullet:
         elif self.diry == -1:
             self.image.clip_composite_draw(0, 0, self.image.w, self.image.h, math.radians(90), 'h', self.x, self.y)
             
-        
+    def get_bb(self): 
+        return self.x-50,self.y-13,self.x+50,self.y+13  #왼쪽,왼쪽바닥,오른쪽 , 오른쪽 바닥 
+    
