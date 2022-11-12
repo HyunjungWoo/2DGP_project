@@ -102,7 +102,7 @@ class Player:
         game_world.add_object(bullet,1)
 
     def change_state(player,change_state):
-        player.state.value = change_state
+        player.state = change_state
     def handle_event(player, event):
         global state
         global direction
@@ -332,11 +332,11 @@ def Duck_draw(player):
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y-30,player.image.w//1.2, player.image.h//1.2) 
 
 def Die_update(player):
-    player.frame = (player.frame + DUCK_FRAMES_PER_ACTION * DUCK_ACTION_PER_TIME * game_framework.frame_time) % 7
-    player.image = load_image('resource/Hit/Ground/cuphead_hit_000%d.png' % player.frame) 
+    player.frame = (player.frame + DUCK_FRAMES_PER_ACTION * DUCK_ACTION_PER_TIME * game_framework.frame_time) % 6
+    player.image = load_image('resource/Hit/Ground/cuphead_hit_(%d).png' % player.frame) 
 
 def Die_draw(player):
-    print('DRAW')
+    # print('DRAW')
     if player.direction == direction['LEFT']:
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)
     else:
