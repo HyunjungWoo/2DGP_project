@@ -50,7 +50,10 @@ class Player:
         player.jump_height, player.mass= 3 , 2
         player.state = state['IDLE']
         player.dash_count, player.jump_count = 0, 0
-
+    
+    def get_bb(player):
+        return player.x - player.image.w/2, player.y -player.image.h/2, player.x + player.image.w/2 , player.y+ player.image.h/2
+   
     def update(player):
         if player.state == state['IDLE']:
             Idle_update(player)
@@ -71,11 +74,13 @@ class Player:
         player.x += player.dirx * 1
       
     def draw(player):
+        draw_rectangle(*player.get_bb())
         if player.state == state['IDLE']:
             Idle_draw(player)
         elif player.state == state['RUNNING']:
             Run_draw(player)
         elif player.state == state['JUMPING']:
+            
             Jump_draw(player)
         elif player.state == state['AIM']:
             Aim_draw(player)
@@ -319,3 +324,5 @@ def Duck_draw(player):
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y-30,player.image.w//1.2, player.image.h//1.2)
     else:
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y-30,player.image.w//1.2, player.image.h//1.2) 
+
+    

@@ -22,7 +22,7 @@ def enter():
     global player,boss
     player = Player()
     boss = Boss_Goopy()
-    #game_world.add_object(player, 1)
+    game_world.add_object(player, 1)
     game_world.add_object(boss,1)
 
 

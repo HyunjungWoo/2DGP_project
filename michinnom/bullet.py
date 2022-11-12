@@ -26,9 +26,9 @@ class Bullet:
             self.diry = -1
     def update(self):
         if self.dirx != 0 and self.diry == 0:
-            self.x += self.dirx * 20
+            self.x += self.dirx * 10
         else:
-            self.y += self.diry * 20
+            self.y += self.diry * 10
         
         if self.x < 0 or self.x > 1200 or self.y <0 or self.y >600:
             game_world.remove_object(self)

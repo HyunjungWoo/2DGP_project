@@ -11,8 +11,12 @@ JUMP_FRAMES_PER_ACTION = 9 # 프레임 장수(사진 갯수)
 JUMP_TIME_PER_ACTION   = 1.0 #속도 조절
 JUMP_ACTION_PER_TIME   = 1.0 / JUMP_TIME_PER_ACTION
 
+JUMP_F_FRAMES_PER_ACTION = 9 # 프레임 장수(사진 갯수)
+JUMP_F_TIME_PER_ACTION   = 5.0 #속도 조절
+JUMP_F_ACTION_PER_TIME   = 1.0 / JUMP_TIME_PER_ACTION
+
 PUNCH_FRAMES_PER_ACTION = 16 # 프레임 장수(사진 갯수)
-PUNCH_TIME_PER_ACTION   = 2.0 #속도 조절
+PUNCH_TIME_PER_ACTION   = 10.0 #속도 조절
 PUNCH_ACTION_PER_TIME   = 1.0 / PUNCH_TIME_PER_ACTION
 
 
@@ -27,16 +31,25 @@ class Boss_Goopy:
         self.dirx, self.diry = -3, 0
         self.frame = 0
         self.jump_count = 0
+        self.timer = 0
         self.jump_height, self.mass= 4, 1
         #self.jump_height, self.mass= 3 , 2
         #self.phase = 1      # 페이즈 1 
-        
+   
+    def get_bb(self):
+        return self.x - self.image.w/2, self.y -self.image.h/2, self.x + self.image.w/2 , self.y+ self.image.h/2
+   
     def update(self):
-        if self.jump_count <5:
+        
+        if self.jump_count < 5:
             jump(self)
-        else: 
+        else:
             self.state = state['JUMP_F']
-            #타이머 추가해서 멈추게 해준 후 펀치 !
+            if self.timer == 28:
+                self.state = state['Punch']
+            #타이머 추가해서 멈추게 해준 후 펀치 !                        
+
+        #상태 업데이트 조건문 
         if self.state == state['JUMP_F']:
             jump_F_update(self)
         elif self.state == state['Punch']:
@@ -44,10 +57,11 @@ class Boss_Goopy:
         elif self.state == state['JUMP_D']:
             jump_D_update(self)
         elif self.state == state['JUMP_U']:
-            jump_U_update(self)
-        
+            jump_U_update(self)                     
+       
             
     def draw(self):
+        draw_rectangle(*self.get_bb())
         if self.dir == 1: #오른쪽 
             self.image.clip_composite_draw(0, 0, self.image.w, self.image.h, 0, 'h', self.x, self.y,self.image.w/1.5, self.image.h/1.5)
         else:
@@ -60,12 +74,13 @@ def phase3():
 
 def punch_update(self):
     self.frame  = (self.frame + PUNCH_FRAMES_PER_ACTION * PUNCH_ACTION_PER_TIME * game_framework.frame_time) % 16
-    self.image = load_image('monster/Goopy/Phase 1/Punch/slime_punch (%d).png' % self.frame)
-
+    self.image = load_image('monster/Goopy/Phase 1/Punch/slime_punch(%d).png' % self.frame)
     
 def jump_F_update(self):
-    self.frame  = (self.frame + JUMP_FRAMES_PER_ACTION * JUMP_ACTION_PER_TIME * game_framework.frame_time) % 9
+    
+    self.frame  = (self.frame + JUMP_F_FRAMES_PER_ACTION * JUMP_F_ACTION_PER_TIME  * game_framework.frame_time) % 9
     self.image = load_image('monster/Goopy/Phase 1/Jump/slime_jump_%d.png' % self.frame)
+    self.timer += 1
 
 def jump_D_update(self):
     self.frame  = (self.frame + JUMP_FRAMES_PER_ACTION * JUMP_ACTION_PER_TIME * game_framework.frame_time) % 3
