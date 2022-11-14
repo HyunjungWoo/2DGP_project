@@ -39,7 +39,7 @@ DUCK_FRAMES_PER_ACTION = 13
 DUCK_TIME_PER_ACTION   = 0.8
 DUCK_ACTION_PER_TIME   = 1.0 / DASH_TIME_PER_ACTION
 # player Event
-global change_state
+
 class Player:
     def __init__(player):
         player.x, player.y = 100, 100
@@ -54,7 +54,6 @@ class Player:
     def get_bb(player):
         return player.x - player.image.w/2+10, player.y -player.image.h/2+10, player.x + player.image.w/2-5 ,\
              player.y+ player.image.h/2-10
-   
     def update(player):
         if player.state == state['IDLE']:
             Idle_update(player)
@@ -100,9 +99,16 @@ class Player:
     def fire_bullet(player):
         bullet =  Bullet(player)
         game_world.add_object(bullet,1)
+    def handle_collision(player,other,group):
+        if other.sort == 'monster':
+            player.state = state['HIT']
+        elif other.sort == 'floor':
+            print('바닥입니다.')
+            player.y = 101
+        #player.state = state['HIT']
 
-    def change_state(player,change_state):
-        player.state = change_state
+    # def change_state(player,change_state):
+    #     player.state = change_state
     def handle_event(player, event):
         global state
         global direction

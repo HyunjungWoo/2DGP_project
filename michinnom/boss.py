@@ -1,5 +1,6 @@
 from pico2d import *
 import game_framework
+
 state = { 'JUMP_F':0,'Punch':1 , 'Die':2 , 'JUMP_D':3, 'JUMP_U':4}
 PIXEL_PER_METER = (10.0 / 0.3)  # 10 pixel 30 cm
 RUN_SPEED_KMPH  = 30.0  # Km / Hour
@@ -33,13 +34,13 @@ class Boss_Goopy:
         self.jump_count = 0
         self.timer = 0
         self.jump_height, self.mass= 4, 1
+        self.sort = 'monster'
         #self.jump_height, self.mass= 3 , 2
         #self.phase = 1      # 페이즈 1 
    
     def get_bb(self):
         return self.x - self.image.w/2 +50, self.y -self.image.h/2+50, self.x + self.image.w/2 -50,\
             self.y+ self.image.h/2 -50
-
    
     def update(self):
         
@@ -68,7 +69,8 @@ class Boss_Goopy:
             self.image.clip_composite_draw(0, 0, self.image.w, self.image.h, 0, 'h', self.x, self.y,self.image.w/1.5, self.image.h/1.5)
         else:
             self.image.clip_composite_draw(0, 0, self.image.w, self.image.h, 0, 'n', self.x, self.y,self.image.w/1.5, self.image.h/1.5)
-
+    def handle_collision(self,other,group):
+        pass
 def phase2():
     pass
 def phase3():

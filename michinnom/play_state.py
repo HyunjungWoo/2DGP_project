@@ -1,12 +1,14 @@
 from pico2d import *
 from player import Player
 from boss import Boss_Goopy
+from background import Back_ground
 player_state = {'IDLE': 0, 'RUNNING' : 1,'JUMPING':2,'AIM' : 3,'DASH':4, 'SHOOT':5, 'RUN_SHOOT':6, 'DUCK':7,'HIT':8}
 import game_framework
 import game_world
 
 player = None
 boss = None
+back_ground = None
 def handle_events():
     events = get_events()
     for event in events:
@@ -22,10 +24,13 @@ def enter():
     global player,boss
     player = Player()
     boss = Boss_Goopy()
+    back_ground = Back_ground()
     game_world.add_object(player, 1)
     game_world.add_object(boss,1)
-
-
+    game_world.add_object(back_ground,0)
+    game_world.add_collision_pairs(player,boss,'player:boss')
+    game_world.add_collision_pairs(player,back_ground,'player:background')
+    game_world.add_collision_pairs()
 # 종료
 def exit():
     game_world.clear()
@@ -35,10 +40,15 @@ def update():
     for game_object in game_world.all_objects():
         game_object.update()
     
-    if collide(player, boss):
-        print('COLLISION playert:boss')
-        player.change_state(player_state['HIT'])
-        print(player.state)
+    for a,b, group in game_world.all_collision_pairs():
+        if collide(a,b):
+            print('COLLISION ',group)
+            a.handle_collision(b,group)
+            b.handle_collision(a,group)
+    # if collide(player, boss):
+    #     print('COLLISION playert:boss')
+    #     player.change_state(player_state['HIT'])
+    #     print(player.state)
 def draw_world():
     for game_object in game_world.all_objects():
         game_object.draw()
