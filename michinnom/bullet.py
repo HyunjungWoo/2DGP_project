@@ -1,6 +1,6 @@
 from pico2d import *
 import game_world
-import math
+
 direction = {'LEFT': -1, 'RIGHT':1 , 'UP':2, 'DOWN':0 }
 
 class Bullet:
@@ -14,10 +14,8 @@ class Bullet:
         self.dirx,self.diry = 0,0
         if player.direction == direction['RIGHT']:
             self.dirx = 1
-            
         elif player.direction== direction['LEFT']:
             self.dirx = -1
-            
         elif player.direction == direction['UP']:
             self.diry = 1
             self.x = player.x + 30
@@ -25,15 +23,18 @@ class Bullet:
         elif player.direction == direction['DOWN']:
             self.diry = -1
     def update(self):
+        
+        if game_world.collision_group(self,game_world.collision_group[1][1])==True:
+            print('야호')
+
         if self.dirx != 0 and self.diry == 0:
             self.x += self.dirx * 10
         else:
             self.y += self.diry * 10
         
-        if self.x < 0 or self.x > 1200 or self.y <0 or self.y >600:
+        if self.x < 0 or self.x > 1200 or self.y <0 or self.y > 600:
             game_world.remove_object(self)
-      
-
+    
     def draw(self):
         draw_rectangle(*self.get_bb())
         if self.dirx == 1:
@@ -46,5 +47,8 @@ class Bullet:
             self.image.clip_composite_draw(0, 0, self.image.w, self.image.h, math.radians(90), 'h', self.x, self.y)
             
     def get_bb(self): 
-        return self.x-50,self.y-13,self.x+50,self.y+13  #왼쪽,왼쪽바닥,오른쪽 , 오른쪽 바닥 
+        if self.diry == 1 :#위쪽
+            return self.x-10,self.y-100,self.x+10,self.y+80
+        else:
+            return self.x-50,self.y-13,self.x+50,self.y+13  #왼쪽,왼쪽바닥,오른쪽 , 오른쪽 바닥 
     

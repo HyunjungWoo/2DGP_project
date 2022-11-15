@@ -57,5 +57,7 @@ def handle_events():
     for event in events:
         if event.key == SDLK_KP_BACKSPACE:
             game_framework.change_state(logo_state)
+        #if event.key == SDLK_ESCAPE:
+           # game_framework.change_state()
        
 

@@ -2,6 +2,7 @@ from pico2d import *
 import game_framework
 import game_world
 from bullet import Bullet
+from boss import Boss_Goopy
 state = {'IDLE': 0, 'RUNNING' : 1,'JUMPING':2,'AIM' : 3,'DASH':4, 'SHOOT':5, 'RUN_SHOOT':6, 'DUCK':7,'HIT':8}
 direction = {'LEFT': -1, 'RIGHT':1 , 'UP':2, 'DOWN':0 }
 
@@ -24,7 +25,7 @@ RUN_TIME_PER_ACTION    = 0.5 #속도 조절
 RUN_ACTION_PER_TIME    = 1.0 / RUN_TIME_PER_ACTION
 
 JUMP_FRAMES_PER_ACTION  = 8
-JUMP_TIME_PER_ACTION    = 0.3#속도 조절
+JUMP_TIME_PER_ACTION    = 0.5#속도 조절
 JUMP_ACTION_PER_TIME    = 1.0 / JUMP_TIME_PER_ACTION
 
 AIM_FRAMES_PER_ACTION = 5
@@ -43,18 +44,22 @@ DUCK_ACTION_PER_TIME   = 1.0 / DASH_TIME_PER_ACTION
 class Player:
     def __init__(player):
         player.x, player.y = 100, 100
-        player.dirx = 0
+        player.dirx, player.diry = 0,0
         player.direction = direction['RIGHT']
         player.image = load_image('resource/idle/idle(0).png')
         player.frame = 0
-        player.jump_height, player.mass= 3 , 2
+        player.jump_height, player.mass= 0 , 2
         player.state = state['IDLE']
         player.dash_count, player.jump_count = 0, 0
     
     def get_bb(player):
-        return player.x - player.image.w/2+10, player.y -player.image.h/2+10, player.x + player.image.w/2-5 ,\
-             player.y+ player.image.h/2-10
+        if player.state == state['DUCK']:
+            return player.x-50 ,player.y- 60,player.x+50,player.y
+        else:
+            return player.x - player.image.w/2+10, player.y -player.image.h/2+10, player.x + player.image.w/2-5 ,\
+                player.y+ player.image.h/2-10
     def update(player):
+        player.gravity()
         if player.state == state['IDLE']:
             Idle_update(player)
         elif player.state == state['RUNNING']:
@@ -74,6 +79,7 @@ class Player:
         if player.state == state['HIT']:
             Die_update(player)
         player.x += player.dirx * 1
+        player.y += player.diry * 1
       
     def draw(player):
         draw_rectangle(*player.get_bb())
@@ -82,7 +88,6 @@ class Player:
         elif player.state == state['RUNNING']:
             Run_draw(player)
         elif player.state == state['JUMPING']:
-            
             Jump_draw(player)
         elif player.state == state['AIM']:
             Aim_draw(player)
@@ -96,19 +101,35 @@ class Player:
             Duck_draw(player)
         if player.state == state['HIT']:
             Die_draw(player)
+
     def fire_bullet(player):
         bullet =  Bullet(player)
         game_world.add_object(bullet,1)
+        
+    
     def handle_collision(player,other,group):
         if other.sort == 'monster':
             player.state = state['HIT']
-        elif other.sort == 'floor':
-            print('바닥입니다.')
-            player.y = 101
-        #player.state = state['HIT']
+            player.jump_count = 0
 
-    # def change_state(player,change_state):
-    #     player.state = change_state
+        elif other.sort == 'floor': 
+            if player.state == state['JUMPING']:
+                player.jump_count = 0
+                player.state = state['IDLE']      
+            player.jump_height =0
+            player.y = 100
+            player.diry = 0
+        #player.state = state['HIT']
+    def gravity(player):
+        if player.state != state['DASH']:
+            if player.jump_height > 3:
+                F = (0.1 * player.mass * (player.jump_height ** 2)) 
+            else:
+                F = -(0.1 * player.mass * (player.jump_height ** 2))
+            player.diry = round(F)
+            #print(player.diry)
+            player.jump_height -= 0.5
+
     def handle_event(player, event):
         global state
         global direction
@@ -116,7 +137,7 @@ class Player:
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_RIGHT:  # 오른쪽 키 눌림
                 player.direction = direction['RIGHT']
-                if player.state != state['AIM'] or player.state != state['DUCK'] :
+                if player.state != state['AIM'] or player.state != state['DUCK']:
                     player.dirx += 1 # x값 증가 
                 
                 if player.state != state['JUMPING'] and player.state != state['DASH'] and player.state != state['AIM']:
@@ -170,7 +191,7 @@ class Player:
                 
                 elif player.state == state['IDLE'] and player.direction == direction['DOWN']:
                     player.state = state['DUCK']
-                    player.dirx =0 
+                    player.dirx = 0 
                 
             elif event.key == SDLK_z:  
                 
@@ -178,14 +199,14 @@ class Player:
                     player.jump_count += 1 
                     player.state = state['JUMPING'] 
                     player.frame = 0 
-                    player.jump_height = 3
+                    player.jump_height = 12
 
             elif event.key == SDLK_LSHIFT:
                 # if player.state != state['JUMPING'] and player.state != state['AIM']:
                 if player.state != state['AIM']:
                     player.state = state['DASH']
                     player.dash_count = 0
-
+                    player.diry= 0
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_RIGHT:
                 if player.state == state['AIM'] or player.state == state['IDLE'] or player.state == state['DUCK']:
@@ -226,8 +247,7 @@ class Player:
                 if player.state == state['RUN_SHOOT']:
                     player.state = state['RUNNING']                    
                 elif player.state == state['SHOOT']:
-                    player.state = state['IDLE']    
-            
+                    player.state = state['IDLE']             
 
 def Idle_update(player): 
     if player.dirx !=0:
@@ -260,22 +280,14 @@ def Run_Shoot_draw(player):
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)    
 def Jump_update(player):  
     
-    if player.y < 100:
-        player.y = 100
-        player.state = state['IDLE']
-        player.jump_height = 3
-        player.jump_count = 0
+    # if player.y < 100:
+    #     player.y = 100
+    #     player.state = state['IDLE']
+    #     player.jump_height = 3
+    #     player.jump_count = 0
     
     player.frame = (player.frame + JUMP_FRAMES_PER_ACTION * JUMP_ACTION_PER_TIME * game_framework.frame_time) % 8
     player.image = load_image('resource/Jump/Cuphead/jump(%d).png' % player.frame)
-    
-    if player.jump_height > 0:
-        F = (0.5 * player.mass * (player.jump_height ** 2)) 
-    else:
-        F = -(0.5 * player.mass * (player.jump_height ** 2))
-    
-    player.y += round(F) 
-    player.jump_height -= 0.05
 def Jump_draw(player):
     if player.direction == direction['LEFT']:
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)   
@@ -304,7 +316,7 @@ def Dash_update(player):
     else:  
         player.x -= 3
     player.dash_count += 1
-    if player.dash_count > 60:
+    if player.dash_count > 30:
         player.frame = 0
         player.state = state['JUMPING']
         
@@ -336,14 +348,13 @@ def Duck_draw(player):
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y-30,player.image.w//1.2, player.image.h//1.2)
     else:
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y-30,player.image.w//1.2, player.image.h//1.2) 
-
 def Die_update(player):
     player.frame = (player.frame + DUCK_FRAMES_PER_ACTION * DUCK_ACTION_PER_TIME * game_framework.frame_time) % 6
     player.image = load_image('resource/Hit/Ground/cuphead_hit_(%d).png' % player.frame) 
-
 def Die_draw(player):
     # print('DRAW')
     if player.direction == direction['LEFT']:
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)
     else:
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y,player.image.w//1.2, player.image.h//1.2) 
+

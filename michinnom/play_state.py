@@ -30,7 +30,8 @@ def enter():
     game_world.add_object(back_ground,0)
     game_world.add_collision_pairs(player,boss,'player:boss')
     game_world.add_collision_pairs(player,back_ground,'player:background')
-    game_world.add_collision_pairs()
+    
+
 # 종료
 def exit():
     game_world.clear()
@@ -42,7 +43,7 @@ def update():
     
     for a,b, group in game_world.all_collision_pairs():
         if collide(a,b):
-            print('COLLISION ',group)
+            #print('COLLISION ',group)
             a.handle_collision(b,group)
             b.handle_collision(a,group)
     # if collide(player, boss):
