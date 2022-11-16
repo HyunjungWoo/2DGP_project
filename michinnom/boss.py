@@ -1,6 +1,6 @@
 from pico2d import *
 import game_framework
-
+import game_world
 state = { 'JUMP_F':0,'Punch':1 , 'Die':2 , 'JUMP_D':3, 'JUMP_U':4}
 PIXEL_PER_METER = (10.0 / 0.3)  # 10 pixel 30 cm
 RUN_SPEED_KMPH  = 30.0  # Km / Hour
@@ -75,8 +75,6 @@ class Boss_Goopy:
             self.image.clip_composite_draw(0, 0, self.image.w, self.image.h, 0, 'n', self.x, self.y,self.image.w/1.5, self.image.h/1.5)
     def handle_collision(self,other,group):
         pass
-        # self.hp -= 1
-        # print(self.hp)
 def phase2():
     pass
 def phase3():

@@ -51,10 +51,11 @@ class Player:
         player.jump_height, player.mass= 0 , 2
         player.state = state['IDLE']
         player.dash_count, player.jump_count = 0, 0
+        
     
     def get_bb(player):
         if player.state == state['DUCK']:
-            return player.x-50 ,player.y- 60,player.x+50,player.y
+            return player.x-50 ,player.y - 60,player.x+50,player.y
         else:
             return player.x - player.image.w/2+10, player.y -player.image.h/2+10, player.x + player.image.w/2-5 ,\
                 player.y+ player.image.h/2-10
@@ -105,8 +106,8 @@ class Player:
     def fire_bullet(player):
         bullet =  Bullet(player)
         game_world.add_object(bullet,1)
-        
-    
+        game_world.add_collision_pairs(game_world.objects[1][1],bullet,'boss:bullet') 
+
     def handle_collision(player,other,group):
         if other.sort == 'monster':
             player.state = state['HIT']

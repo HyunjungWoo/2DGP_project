@@ -1,16 +1,19 @@
 from pico2d import *
+import play_state
 import game_world
-
+from boss import Boss_Goopy
 direction = {'LEFT': -1, 'RIGHT':1 , 'UP':2, 'DOWN':0 }
 
 class Bullet:
+    image = None
     def __init__(self,player):
-
+        self.sort = 'bullet'
         self.range = 0
         self.x = player.x + 15
         self.y = player.y + 3
         self.isOn = False
-        self.image = load_image('resource/aim/shoot_img/3.png')
+        if Bullet.image == None:
+            Bullet.image = load_image('resource/aim/shoot_img/3.png')
         self.dirx,self.diry = 0,0
         if player.direction == direction['RIGHT']:
             self.dirx = 1
@@ -23,9 +26,6 @@ class Bullet:
         elif player.direction == direction['DOWN']:
             self.diry = -1
     def update(self):
-        
-        if game_world.collision_group(self,game_world.collision_group[1][1])==True:
-            print('야호')
 
         if self.dirx != 0 and self.diry == 0:
             self.x += self.dirx * 10
@@ -51,4 +51,10 @@ class Bullet:
             return self.x-10,self.y-100,self.x+10,self.y+80
         else:
             return self.x-50,self.y-13,self.x+50,self.y+13  #왼쪽,왼쪽바닥,오른쪽 , 오른쪽 바닥 
-    
+    def handle_collision(self,other,group):
+        if other.sort == 'monster':
+            print('충돌')
+            print(other.hp)
+            other.hp -= 1
+            game_world.remove_object(self)
+            
