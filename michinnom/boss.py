@@ -1,6 +1,6 @@
 from pico2d import *
 import game_framework
-import game_world
+
 state = { 'JUMP_F':0,'Punch':1 , 'Die':2 , 'JUMP_D':3, 'JUMP_U':4}
 PIXEL_PER_METER = (10.0 / 0.3)  # 10 pixel 30 cm
 RUN_SPEED_KMPH  = 30.0  # Km / Hour
@@ -35,6 +35,7 @@ class Boss_Goopy:
         self.timer = 0
         self.jump_height, self.mass= 4, 1
         self.sort = 'monster'
+        self.punch_count = 0
         #self.jump_height, self.mass= 3 , 2
         #self.phase = 1      # 페이즈 1 
    
@@ -83,6 +84,11 @@ def phase3():
 def punch_update(self):
     self.frame  = (self.frame + PUNCH_FRAMES_PER_ACTION * PUNCH_ACTION_PER_TIME * game_framework.frame_time) % 16
     self.image = load_image('monster/Goopy/Phase 1/Punch/slime_punch(%d).png' % self.frame)
+    self.punch_count += 1
+    if self.punch_count > 140:
+        self.frame = 0
+        #self.state = state['JUMP_F']
+        self.jump_count = 0
 
 def punch_draw_left(self):
     if int(self.frame) <0:
@@ -173,7 +179,7 @@ def jump_U_update(self):
 
     
 def jump(self):
-     
+    self.punch_count =0
     if self.y < 100:
         self.y = 100
         self.state = state['JUMP_F']

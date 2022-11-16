@@ -53,13 +53,13 @@ class Player:
         player.dash_count, player.jump_count = 0, 0
         
     
-    def get_bb(player):
+    def get_bb(player): #충돌처리 박스 
         if player.state == state['DUCK']:
             return player.x-50 ,player.y - 60,player.x+50,player.y
         else:
             return player.x - player.image.w/2+10, player.y -player.image.h/2+10, player.x + player.image.w/2-5 ,\
                 player.y+ player.image.h/2-10
-    def update(player):
+    def update(player): #상태변화 업데이트
         player.gravity()
         if player.state == state['IDLE']:
             Idle_update(player)
@@ -82,7 +82,7 @@ class Player:
         player.x += player.dirx * 1
         player.y += player.diry * 1
       
-    def draw(player):
+    def draw(player): #상태변화에 따른 이미지 드로우
         draw_rectangle(*player.get_bb())
         if player.state == state['IDLE']:
             Idle_draw(player)
@@ -103,7 +103,7 @@ class Player:
         if player.state == state['HIT']:
             Die_draw(player)
 
-    def fire_bullet(player):
+    def fire_bullet(player): #총앏 발사
         bullet =  Bullet(player)
         game_world.add_object(bullet,1)
         game_world.add_collision_pairs(game_world.objects[1][1],bullet,'boss:bullet') 
@@ -113,7 +113,7 @@ class Player:
             player.state = state['HIT']
             player.jump_count = 0
 
-        elif other.sort == 'floor': 
+        elif other.sort == 'floor':  #바닥체크
             if player.state == state['JUMPING']:
                 player.jump_count = 0
                 player.state = state['IDLE']      
@@ -121,7 +121,7 @@ class Player:
             player.y = 100
             player.diry = 0
         #player.state = state['HIT']
-    def gravity(player):
+    def gravity(player): #상시 중력 처리 
         if player.state != state['DASH']:
             if player.jump_height > 3:
                 F = (0.1 * player.mass * (player.jump_height ** 2)) 
