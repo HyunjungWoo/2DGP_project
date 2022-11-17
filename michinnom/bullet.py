@@ -55,6 +55,6 @@ class Bullet:
         if other.sort == 'monster':
             print('충돌')
             print(other.hp)
-            other.hp -= 1
+            other.hp -= 10
             game_world.remove_object(self)
             

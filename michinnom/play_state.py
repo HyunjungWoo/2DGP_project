@@ -29,7 +29,9 @@ def enter():
     game_world.add_object(boss,1)
     game_world.add_object(back_ground,0)
     game_world.add_collision_pairs(player,boss,'player:boss')
+    game_world.add_collision_pairs(boss,back_ground,'boss:background')
     game_world.add_collision_pairs(player,back_ground,'player:background')
+    
     
 
 # 종료
