@@ -85,7 +85,7 @@ def punch_update(self):
     self.frame  = (self.frame + PUNCH_FRAMES_PER_ACTION * PUNCH_ACTION_PER_TIME * game_framework.frame_time) % 16
     self.image = load_image('monster/Goopy/Phase 1/Punch/slime_punch(%d).png' % self.frame)
     self.punch_count += 1
-    if self.punch_count > 140:
+    if self.punch_count > 90:
         self.frame = 0
         #self.state = state['JUMP_F']
         self.jump_count = 0
