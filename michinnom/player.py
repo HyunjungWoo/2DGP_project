@@ -51,7 +51,9 @@ class Player:
     l_jump = []
     l_aim = []
     l_duck = []
-    l_shoot = []
+    l_shoot_LR = []
+    l_shoot_UP = []
+    l_shoot_DN = []
     l_runshoot = []
     l_hit = []
     l_dash = []
@@ -65,34 +67,40 @@ class Player:
         player.jump_height, player.mass= 0 , 2
         player.state = state['IDLE']
         player.dash_count, player.jump_count = 0, 0
-        for i in range(4): #idle 이미지 리스트 저장 
+        for i in range(5): #idle 이미지 리스트 저장 
             a = load_image('resource/idle/idle(%d).png' % i)
             Player.l_idle.append(a)
         for i in range(16):#run 이미지 리스트 저장
             a = load_image('resource/Run/Normal/run(%d).png' % i)
             Player.l_run.append(a)
-        for i in range(7): #jump 이미지 리스트 저장 
+        for i in range(8): #jump 이미지 리스트 저장 
             a = load_image('resource/Jump/Cuphead/jump(%d).png' % i)
             Player.l_jump.append(a)
-        for i in range(13): #runshoot 이미지 리스트 저장 
+        for i in range(14): #runshoot 이미지 리스트 저장 
             a = load_image('resource/Run/Shooting/Straight/run_shoot (%d).png' % i)
             Player.l_runshoot.append(a)
-        for i in range(7):
+        for i in range(8):#dash 이미지 저장  장수 만큼 range안에 추가 시켜줘야함 
             a = load_image('resource/Dash/Ground/dash(%d).png' % i)
             Player.l_dash.append(a)
-        for i in range(12):
+        for i in range(13):#앉기 이미지 저장 
             a = load_image('resource/Duck/Idle/duck(%d).png' % i)
             Player.l_duck.append(a)
-        #for i in range():
-        #    a = load_image()
-        #    l_shoot[i].append(a)
-        for i in range(5):
+        for i in range(6): #오른쪽 왼쪽 쏘기 
+            a = load_image('resource/Shoot/Straight/shoot_straight(%d).png' % i)
+            Player.l_shoot_LR.append(a)
+        for i in range(6): #위로 쏘기 -6장
+            a = load_image('resource/Shoot/Up/shoot_up (%d).png' % i)
+            Player.l_shoot_UP.append(a)
+        for i in range(6): #아래로 쏘기  -6장 
+            a = load_image('resource/Shoot/Down/shoot_down (%d).png' % i)
+            Player.l_shoot_DN.append(a)
+        for i in range(6): #충돌 이미지 -6장
             a = load_image('resource/Hit/Ground/cuphead_hit_(%d).png' %i)
             Player.l_hit.append(a)
        
     def get_bb(player): #충돌처리 박스 
         if player.state == state['DUCK']:
-            return player.x-50 ,player.y - 60,player.x+50,player.y
+            return player.x-50 ,player.y-55,player.x+50,player.y
         else:
             return player.x-50, player.y-50 , player.x+50,player.y+50
     def update(player): #상태변화 업데이트
@@ -295,6 +303,7 @@ def Idle_update(player):
         player.state = state['RUNNING']
     player.frame  = (player.frame + IDLE_FRAMES_PER_ACTION * IDLE_ACTION_PER_TIME * game_framework.frame_time) % 4
     #player.image  = load_image('resource/idle/idle(%d).png' % player.frame)
+    
 def Idle_draw(player):
     if player.direction == direction['LEFT']:
         player.l_idle[int(player.frame)].clip_composite_draw(0, 0, player.l_idle[int(player.frame)].w, player.l_idle[int(player.frame)].h, 0, 'h',player.x, player.y,player.l_idle[int(player.frame)].w//1.2, player.l_idle[int(player.frame)].h//1.2)
@@ -314,6 +323,7 @@ def Run_shoot_update(player):
         player.frame = (player.frame + RUN_FRAMES_PER_ACTION * RUN_ACTION_PER_TIME * game_framework.frame_time) % 14
         #player.image = load_image('resource/Run/Shooting/Straight/run_shoot (%d).png' % player.frame)
         player.x  += player.dirx * game_framework.frame_time *RUN_SPEED_PPS
+        
 def Run_Shoot_draw(player):
     if player.direction == direction['RIGHT']:
         player.l_runshoot[int(player.frame)].clip_composite_draw(0, 0, player.l_runshoot[int(player.frame)].w, player.l_runshoot[int(player.frame)].h, 0,
@@ -321,9 +331,11 @@ def Run_Shoot_draw(player):
     elif player.direction == direction['LEFT']:
         player.l_runshoot[int(player.frame)].clip_composite_draw(0, 0, player.l_runshoot[int(player.frame)].w, player.l_runshoot[int(player.frame)].h, 0,
          'h', player.x, player.y,player.l_runshoot[int(player.frame)].w//1.2, player.l_runshoot[int(player.frame)].h//1.2)
+        
 def Jump_update(player):  
     player.frame = (player.frame + JUMP_FRAMES_PER_ACTION * JUMP_ACTION_PER_TIME * game_framework.frame_time) % 7
   #  player.image = load_image('resource/Jump/Cuphead/jump(%d).png' % player.frame)
+  
 def Jump_draw(player):
     if player.direction == direction['LEFT']:
         player.l_jump[int(player.frame)].clip_composite_draw(0, 0, player.l_jump[int(player.frame)].w, player.l_jump[int(player.frame)].h, 0, 
@@ -331,6 +343,7 @@ def Jump_draw(player):
     else:  
         player.l_jump[int(player.frame)].clip_composite_draw(0, 0, player.l_jump[int(player.frame)].w, player.l_jump[int(player.frame)].h, 0, 
         'n', player.x, player.y,player.l_jump[int(player.frame)].w//1.2, player.l_jump[int(player.frame)].h//1.2)  
+        
 def Aim_update(player):
     player.frame = (player.frame + AIM_FRAMES_PER_ACTION * AIM_ACTION_PER_TIME * game_framework.frame_time) % 5
     if player.direction == direction['RIGHT'] or player.direction == direction['LEFT']:
@@ -339,6 +352,7 @@ def Aim_update(player):
         player.image = load_image('resource/aim/Up/aim_Up(%d).png'% player.frame)
     elif player.direction == direction['DOWN']:
         player.image = load_image('resource/aim/Down/aim_Down(%d).png'% player.frame)
+        
 def Aim_draw(player):
     if player.direction == direction['LEFT']:
         player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)
@@ -353,10 +367,11 @@ def Dash_update(player):
         player.x -= 3
     player.dash_count += 1
     if player.dash_count > 30:
-        # player.frame = 0
-        player.state = state['JUMPING']
         
+        player.state = state['JUMPING']
+        player.frame = 0
         player.jump_height = 0    
+        
 def Dash_draw(player):
     if player.direction == direction['RIGHT']:
         player.l_dash[int(player.frame)].clip_composite_draw(0, 0, player.l_dash[int(player.frame)].w, player.l_dash[int(player.frame)].h, 0,
@@ -364,30 +379,41 @@ def Dash_draw(player):
     elif player.direction == direction['LEFT']:
        player.l_dash[int(player.frame)].clip_composite_draw(0, 0, player.l_dash[int(player.frame)].w, player.l_dash[int(player.frame)].h, 0,
          'h', player.x, player.y,player.l_dash[int(player.frame)].w//1.2, player.l_dash[int(player.frame)].h//1.2)
+       
 def Shoot_update(player):
     player.frame = (player.frame + AIM_FRAMES_PER_ACTION * AIM_ACTION_PER_TIME * game_framework.frame_time) % 6
-    if player.direction == direction['RIGHT'] or player.direction == direction['LEFT']:
-        player.image = load_image('resource/Shoot/Straight/shoot_straight (%d).png' % player.frame)
-    elif player.direction == direction['UP']:
-        player.image = load_image('resource/Shoot/Up/shoot_up (%d).png'% player.frame)
-    elif player.direction == direction['DOWN']:
-        player.image = load_image('resource/Shoot/Down/shoot_down (%d).png'% player.frame)
+    # if player.direction == direction['RIGHT'] or player.direction == direction['LEFT']:
+    #     player.image = load_image('resource/Shoot/Straight/shoot_straight (%d).png' % player.frame)
+    # elif player.direction == direction['UP']:
+    #     player.image = load_image('resource/Shoot/Up/shoot_up (%d).png'% player.frame)
+    # elif player.direction == direction['DOWN']:
+    #     player.image = load_image('resource/Shoot/Down/shoot_down (%d).png'% player.frame)
+        
 def Shoot_draw(player):
     if player.direction == direction['LEFT']:
-        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'h', player.x, player.y,player.image.w//1.2, player.image.h//1.2)
-    else:
-        player.image.clip_composite_draw(0, 0, player.image.w, player.image.h, 0, 'n', player.x, player.y,player.image.w//1.2, player.image.h//1.2) 
+        player.l_shoot_LR[int(player.frame)].clip_composite_draw(0, 0, player.l_shoot_LR[int(player.frame)].w, player.l_shoot_LR[int(player.frame)].h, 0,'h', player.x, player.y,player.l_shoot_LR[int(player.frame)].w//1.2, player.l_shoot_LR[int(player.frame)].h//1.2)
+    elif player.direction == direction['UP']:
+        player.l_shoot_UP[int(player.frame)].clip_composite_draw(0, 0, player.l_shoot_UP[int(player.frame)].w, player.l_shoot_UP[int(player.frame)].h, 0,'n', player.x, player.y,player.l_shoot_UP[int(player.frame)].w//1.2, player.l_shoot_UP[int(player.frame)].h//1.2) 
+    elif player.direction == direction['DOWN']:
+        player.l_shoot_DN[int(player.frame)].clip_composite_draw(0, 0, player.l_shoot_UP[int(player.frame)].w, player.l_shoot_DN[int(player.frame)].h, 0,'n', player.x, player.y,player.l_shoot_DN[int(player.frame)].w//1.2, player.l_shoot_DN[int(player.frame)].h//1.2) 
+    elif player.direction == direction['RIGHT']:
+        player.l_shoot_LR[int(player.frame)].clip_composite_draw(0, 0, player.l_shoot_LR[int(player.frame)].w, player.l_shoot_LR[int(player.frame)].h, 0,'n', player.x, player.y,player.l_shoot_LR[int(player.frame)].w//1.2, player.l_shoot_LR[int(player.frame)].h//1.2)
+    
+        
 def Duck_update(player):
     player.frame = (player.frame + DUCK_FRAMES_PER_ACTION * DUCK_ACTION_PER_TIME * game_framework.frame_time) % 13
     #player.image = load_image('resource/Duck/Idle/duck(%d).png' % player.frame) 
+    
 def Duck_draw(player):
     if player.direction == direction['LEFT']:
-         player.l_duck[int(player.frame)].clip_composite_draw(0, 0, player.l_duck[int(player.frame)].w, player.l_duck[int(player.frame)].h, 0,'h', player.x, player.y,player.l_duck[int(player.frame)].w//1.2, player.l_duck[int(player.frame)].h//1.2)
+         player.l_duck[int(player.frame)].clip_composite_draw(0, 0, player.l_duck[int(player.frame)].w, player.l_duck[int(player.frame)].h, 0,'h', player.x, player.y-20,player.l_duck[int(player.frame)].w//1.2, player.l_duck[int(player.frame)].h//1.2)
     else:
-        player.l_duck[int(player.frame)].clip_composite_draw(0, 0, player.l_duck[int(player.frame)].w, player.l_duck[int(player.frame)].h, 0,'n', player.x, player.y,player.l_duck[int(player.frame)].w//1.2, player.l_duck[int(player.frame)].h//1.2)
+        player.l_duck[int(player.frame)].clip_composite_draw(0, 0, player.l_duck[int(player.frame)].w, player.l_duck[int(player.frame)].h, 0,'n', player.x, player.y-20,player.l_duck[int(player.frame)].w//1.2, player.l_duck[int(player.frame)].h//1.2)
+        
 def Die_update(player):
     player.frame = (player.frame + DUCK_FRAMES_PER_ACTION * DUCK_ACTION_PER_TIME * game_framework.frame_time) % 5
    # player.image = load_image('resource/Hit/Ground/cuphead_hit_(%d).png' % player.frame) 
+   
 def Die_draw(player):
     # print('DRAW')
     if player.direction == direction['LEFT']:
