@@ -37,3 +37,8 @@ def handle_events():
         elif event.type == SDL_KEYDOWN and  event.key == SDLK_SPACE:
             game_framework.change_state(ready_state)
 
+def pause():
+    pass
+
+def resume():
+    pass

@@ -55,9 +55,15 @@ def draw():
 def handle_events():
     events = get_events()
     for event in events:
-        if event.key == SDLK_KP_BACKSPACE:
+        if event.key == SDLK_ESCAPE:
             game_framework.change_state(logo_state)
-        #if event.key == SDLK_ESCAPE:
-           # game_framework.change_state()
+            #ready_state 멈추기 상태 구현 필요 
+
+
+def pause():
+    pass
+
+def resume():
+    pass
        
 
