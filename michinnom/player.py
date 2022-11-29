@@ -3,6 +3,9 @@ import game_framework
 import game_world
 from bullet import Bullet
 from boss import Boss_Goopy
+
+
+import play_state
 state = {'IDLE': 0, 'RUNNING' : 1,'JUMPING':2,'AIM' : 3,'DASH':4, 'SHOOT':5, 'RUN_SHOOT':6, 'DUCK':7,'HIT':8}
 direction = {'LEFT': -1, 'RIGHT':1 , 'UP':2, 'DOWN':0 }
 
@@ -50,7 +53,7 @@ class Player:
     l_duck = []
     l_shoot_LR = []
     l_shoot_UP = []
-    l_shoot_DOWN = []
+    l_shoot_DN = []
     l_runshoot = []
     l_hit = []
     l_dash = []
@@ -64,6 +67,7 @@ class Player:
         player.jump_height, player.mass= 0 , 2
         player.state = state['IDLE']
         player.dash_count, player.jump_count = 0, 0
+        player.dash_time = 0
         for i in range(5): #idle 이미지 리스트 저장 
             a = load_image('resource/idle/idle(%d).png' % i)
             Player.l_idle.append(a)
@@ -90,7 +94,7 @@ class Player:
             Player.l_shoot_UP.append(a)
         for i in range(6): #아래로 쏘기  -6장 
             a = load_image('resource/Shoot/Down/shoot_down(%d).png' % i)
-            Player.l_shoot_DOWN.append(a)
+            Player.l_shoot_DN.append(a)
         for i in range(6): #충돌 이미지 -6장
             a = load_image('resource/Hit/Ground/cuphead_hit(%d).png' %i)
             Player.l_hit.append(a)
@@ -98,14 +102,17 @@ class Player:
     def get_bb(player): #충돌처리 박스 
         if player.state == state['DUCK']:
             return player.x-50 ,player.y-55,player.x+50,player.y
+        elif player.state == state['JUMPING']:
+            return player.x -30, player.y - 30, player.x +30, player.y + 30
         elif player.state == state['DASH']:
             if player.direction == direction['RIGHT']:
                 return player.x -50,player.y-40,player.x+100,player.y+40
             elif player.direction == direction['LEFT']:
                 return player.x -110,player.y-40,player.x+50,player.y+40
         else:
-            return player.x-50, player.y-50 , player.x+50,player.y+50
+            return player.x-40, player.y-50 , player.x+40,player.y+50
     def update(player): #상태변화 업데이트
+        print(player.dash_count,player.state)
         player.gravity()
         if player.state == state['IDLE']:
             Idle_update(player)   
@@ -127,7 +134,7 @@ class Player:
             Die_update(player)
         player.x += player.dirx * 1
         player.y += player.diry * 1
-      
+    
     def draw(player): #상태변화에 따른 이미지 드로우
         draw_rectangle(*player.get_bb())
         if player.state == state['IDLE']:
@@ -151,14 +158,16 @@ class Player:
     def fire_bullet(player): #총알 상호작용 
         bullet =  Bullet(player)
         game_world.add_object(bullet,1)
-        game_world.add_collision_pairs(game_world.objects[1][1],bullet,'boss:bullet') 
+        game_world.add_collision_pairs(play_state.boss,bullet,'boss:bullet')
+        
     def handle_collision(player,other,group): #충돌처리 관리 
         if other.sort == 'monster':
             player.state = state['HIT']
             player.frame = 0
             player.jump_count = 0
 
-        elif other.sort == 'floor':  #바닥체크
+        elif other.sort == 'floor': #바닥체크
+            player.dash_count = 1   
             if player.state == state['JUMPING']:
                 player.jump_count = 0
                 player.state = state['IDLE'] 
@@ -247,9 +256,11 @@ class Player:
                     player.jump_height = 12
 
             elif event.key == SDLK_LSHIFT:
-                if player.state != state['AIM']:
+                if player.state != state['AIM'] and player.dash_count  == 1 :
                     player.state = state['DASH']
-                    player.dash_count = 0
+                    player.dash_count -= 1
+                    player.dash_time = 0
+                    #player.dash_count  = 0
                     player.diry= 0
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_RIGHT:
@@ -294,7 +305,7 @@ class Player:
                 elif player.state == state['SHOOT']:
                     player.state = state['IDLE']
             elif event.key == SDLK_LSHIFT:
-                player.frame = 0
+                pass
                                 
 def Idle_update(player): 
     if player.dirx !=0:
@@ -348,11 +359,11 @@ def Aim_draw(player):
 def Dash_update(player):
     player.frame = (player.frame + DASH_FRAMES_PER_ACTION * DASH_ACTION_PER_TIME * game_framework.frame_time) % 7
     if player.direction == direction['RIGHT']:
-        player.x += 3
-    else:  
-        player.x -= 3
-    player.dash_count += 1
-    if player.dash_count > 30: 
+        player.x += 10
+    elif player.direction == direction['LEFT']:  
+        player.x -= 10
+    player.dash_time += game_framework.frame_time
+    if player.dash_time> 0.4: 
         player.state = state['JUMPING']
         player.frame = 0
         player.jump_height = 0          
@@ -371,7 +382,7 @@ def Shoot_draw(player):
     elif player.direction == direction['UP']:
         player.l_shoot_UP[int(player.frame)].clip_composite_draw(0, 0, player.l_shoot_UP[int(player.frame)].w, player.l_shoot_UP[int(player.frame)].h, 0,'n', player.x, player.y,player.l_shoot_UP[int(player.frame)].w//1.2, player.l_shoot_UP[int(player.frame)].h//1.2) 
     elif player.direction == direction['DOWN']:
-        player.l_shoot_DN[int(player.frame)].clip_composite_draw(0, 0, player.l_shoot_UP[int(player.frame)].w, player.l_shoot_DN[int(player.frame)].h, 0,'n', player.x, player.y,player.l_shoot_DN[int(player.frame)].w//1.2, player.l_shoot_DN[int(player.frame)].h//1.2) 
+        player.l_shoot_DN[int(player.frame)].clip_composite_draw(0, 0, player.l_shoot_DN[int(player.frame)].w, player.l_shoot_DN[int(player.frame)].h, 0,'n', player.x, player.y,player.l_shoot_DN[int(player.frame)].w//1.2, player.l_shoot_DN[int(player.frame)].h//1.2) 
     elif player.direction == direction['RIGHT']:
         player.l_shoot_LR[int(player.frame)].clip_composite_draw(0, 0, player.l_shoot_LR[int(player.frame)].w, player.l_shoot_LR[int(player.frame)].h, 0,'n', player.x, player.y,player.l_shoot_LR[int(player.frame)].w//1.2, player.l_shoot_LR[int(player.frame)].h//1.2)
 def Duck_update(player):

@@ -4,6 +4,7 @@ from boss import Boss_Goopy
 from background import Back_ground
 import game_framework
 import game_world
+import os
 
 player = None
 boss = None
@@ -16,7 +17,7 @@ def handle_events():
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_ESCAPE):
             game_framework.quit()
         else:
-           player.handle_event(event)
+            player.handle_event(event)
 
 # 초기화
 def enter():
@@ -44,6 +45,7 @@ def update():
     
     for a,b, group in game_world.all_collision_pairs():
         if collide(a,b):
+            #print('COLLISION ', group)
             a.handle_collision(b,group)
             b.handle_collision(a,group)
 

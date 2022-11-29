@@ -18,7 +18,7 @@ def remove_object(o):
             remove_collision_object(o)
             del o
             return
-    raise ValueError('Trying destory non existing object ')
+    raise ValueError('Trying destory non existing object')
 
 
 def all_objects():
@@ -60,3 +60,13 @@ def remove_collision_object(o):
             pairs[0].remove(o)
         elif o in pairs[1]:
             pairs[1].remove(o)
+
+def remove_collision_pairs(a, b, group):
+    if group not in collision_group:
+        assert('group is not in collision_group')
+        
+    if a:           
+        collision_group[group][1].remove(b)
+            
+    if b:
+        collision_group[group][0].remove(a)

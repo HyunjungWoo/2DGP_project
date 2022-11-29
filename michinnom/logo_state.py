@@ -16,7 +16,6 @@ def exit():
 
 def update():
     global  count, image_character
-    # count = (count+1) % 34
     if count == 34:
         count = 1
     count += 1

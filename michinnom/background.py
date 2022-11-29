@@ -42,8 +42,9 @@ class Back_ground:
     def get_bb(self):
         return 0,0,1280-1,50
     
-    def handle_collision(player,ohter,group):
+    def handle_collision(player,other,group):
         pass
+            
 
 def grass_draw(self):
     self.image_grass_1.clip_composite_draw(0,0,self.image_back.w,self.image_back.h,0,'n',100,700)#나뭇가지 왼쪽
