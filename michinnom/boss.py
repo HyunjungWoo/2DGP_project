@@ -87,7 +87,7 @@ class Boss_Goopy:
         
     def __init__(self):
         self.hp = 1400#phase 1 = 336 , phase 2= 560 phase 3= 504 full.hp = 1400 
-        self.state = state['Idle']
+        self.state = state['Punch']
         self.sort = 'monster'
         self.frame = 0
         self.x,self.y = 600,100
@@ -143,12 +143,12 @@ class Boss_Goopy:
                 self.smash_time =0.0
         if self.jumpcount <3:
             self.Jump_Goopy()
-        else: #self.jumpcount >3:
+        else:
             if 504<=self.hp <1000 and self.change_morph == False:
-                #self.jumpcount = 3
+                
                 self.state = state['Morph']
             elif self.hp < 504 and self. change_death == False:
-                #self.jumpcount = 3
+                
                 self.state = state['Death']
             elif self.phase == 1:
                 self.state = state['Punch']
@@ -186,8 +186,20 @@ class Boss_Goopy:
             die_draw(self)
     def get_bb(self):
         if self.phase ==1:
-            return self.x -50 ,self.y-50, self.x+50,self.y +50 
+            if self.state == state['Punch'] and (int(self.frame) == 9 or int(self.frame) == 10):
+                if self.dir == 1: #오른쪽
+                    return self.x +100 ,self.y -50,self.x +350, self.y + 200 
+                else: return self.x - 350, self.y -50 , self.x -100, self.y +200 
+            else:
+                return self.x -50 ,self.y-50, self.x+50,self.y +50 
         elif self.phase == 2:
+            if self.state == state['Punch'] and ( 13<int(self.frame)<18):
+                if self.dir == 1:
+                    self.y = 150
+                    return self.x +100 ,self.y -40, self.x + 400, self.y + 100
+                else:
+                    self.y = 150
+                    return self.x -100, self.y -40, self.x - 400, self.y + 100 
             return self.x -100,self.y -100,self.x + 100,self.y +100
         elif self.state == ['Death']:
             return self.x -100,self.y -50,self.x +100,self.y +50
@@ -195,6 +207,9 @@ class Boss_Goopy:
             return  self.x - 200,self.y -300,self.x +200, self.y-50   
         elif self.state == state['Tomb_Move'] or self.state == state['Tomb_Smash']:
             return self.x -70,self.y -30,self.x +70, self.y + 50
+       
+            
+                
         else:
             return self.x ,self.y,self.x,self.y
         
@@ -243,7 +258,11 @@ class Boss_Goopy:
             else: self.x -= 5
 
 def punch_update(self):
-    self.frame  = (self.frame + PUNCH_FRAMES_PER_ACTION * PUNCH_ACTION_PER_TIME * game_framework.frame_time) % 16
+    if self.phase == 1:
+        self.frame  = (self.frame + PUNCH_FRAMES_PER_ACTION * PUNCH_ACTION_PER_TIME * game_framework.frame_time) % 16
+    else: 
+        self.frame  = (self.frame + PUNCH_FRAMES_PER_ACTION * PUNCH_ACTION_PER_TIME * game_framework.frame_time) % 19
+        
 def punch_draw_phase1(self):
     global px,py
     if int(self.frame) <0:
@@ -379,8 +398,10 @@ def punch_draw_phase2(self):
     elif int(self.frame) == 12: px,py = -70,7
     elif int(self.frame) == 13: px,py = -70,7
     elif int(self.frame) == 14: px,py = -105,-7
-    elif int(self.frame) == 15:
-        px,py = -110,-7
+    elif 15<=int(self.frame)<18:
+        px,py = -110,0
+    elif int(self.frame)==18:
+        px,py = -110,0
         self.jumpcount = 0
         self.frame = 0
     if self.dir ==1: #오른쪽 
@@ -394,7 +415,7 @@ def death_draw(self):
     if int(self.frame)== 19 and self.change_death == False:
         phase3_monster = Fall_Tomb(self)
         game_world.add_object(phase3_monster,1)
-        game_world.add_collision_pairs(game_world.objects[1][1],phase3_monster,'Boss:Tomb')
+        game_world.add_collision_pairs(game_world.objects[1][0],phase3_monster,'Boss:Tomb')
         game_world.add_collision_pairs(phase3_monster,game_world.objects[0][0],'Tomb:background')
         self.change_death = True
         

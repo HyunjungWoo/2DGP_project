@@ -3,10 +3,10 @@ import game_framework
 import game_world
 from bullet import Bullet
 from boss import Boss_Goopy
-
+import ui
 
 import play_state
-state = {'IDLE': 0, 'RUNNING' : 1,'JUMPING':2,'AIM' : 3,'DASH':4, 'SHOOT':5, 'RUN_SHOOT':6, 'DUCK':7,'HIT':8}
+state = {'IDLE': 0, 'RUNNING' : 1,'JUMPING':2,'AIM' : 3,'DASH':4, 'SHOOT':5, 'RUN_SHOOT':6, 'DUCK':7,'HIT':8,'GHOST':9}
 direction = {'LEFT': -1, 'RIGHT':1 , 'UP':2, 'DOWN':0 }
 
 #Player Run Speed
@@ -42,9 +42,6 @@ DUCK_FRAMES_PER_ACTION = 13
 DUCK_TIME_PER_ACTION   = 0.8
 DUCK_ACTION_PER_TIME   = 1.0 / DASH_TIME_PER_ACTION
 
-
-
-
 class Player:
     l_idle = []
     l_run = []
@@ -57,6 +54,7 @@ class Player:
     l_runshoot = []
     l_hit = []
     l_dash = []
+    l_ghost = []
     def __init__(player):
         player.sort = 'player'
         player.hp = 3
@@ -68,6 +66,14 @@ class Player:
         player.state = state['IDLE']
         player.dash_count, player.jump_count = 0, 0
         player.dash_time = 0
+        player.isAttaked,player.isAttaked_count  = False , 0 #무적판정 변수
+
+        player.image_load() # 이미지 모두 로드 
+        
+        ##UI##
+        player.uihp = ui.HpUi(player)
+        
+    def image_load(player):
         for i in range(5): #idle 이미지 리스트 저장 
             a = load_image('resource/idle/idle(%d).png' % i)
             Player.l_idle.append(a)
@@ -98,6 +104,9 @@ class Player:
         for i in range(6): #충돌 이미지 -6장
             a = load_image('resource/Hit/Ground/cuphead_hit(%d).png' %i)
             Player.l_hit.append(a)
+        for i in range(24):#유령 이미지 -16장 
+            a= load_image('resource/Ghost/cuphead_ghost(%d).png' % i)
+            Player.l_ghost.append(a)
        
     def get_bb(player): #충돌처리 박스 
         if player.state == state['DUCK']:
@@ -112,8 +121,9 @@ class Player:
         else:
             return player.x-40, player.y-50 , player.x+40,player.y+50
     def update(player): #상태변화 업데이트
-        print(player.dash_count,player.state)
-        player.gravity()
+        #print(player.isAttaked,player.isAttaked_count)
+        
+        ##프레임값 갱신###
         if player.state == state['IDLE']:
             Idle_update(player)   
         elif player.state == state['RUNNING']:
@@ -130,11 +140,30 @@ class Player:
             Run_shoot_update(player)
         elif player.state == state['DUCK']:
             Duck_update(player)
-        if player.state == state['HIT']:
+        elif player.state == state['HIT']:
             Die_update(player)
+        elif player.state == state['GHOST']:
+            Ghost_update(player)
+        
+        ##충돌 무적처리 ##
+        if player.isAttaked == True:
+            player.isAttaked_count += game_framework.frame_time
+            if player.isAttaked_count >= 2.0 : 
+                player.isAttaked = False
+                player.isAttaked_count = 0 
+        
+        if player.hp <= 0:
+            print('게임오버')
+            player.state = state['GHOST']
+            
+        if player.state != state['GHOST']:
+            player.gravity() ##항상 중력 적용         
         player.x += player.dirx * 1
         player.y += player.diry * 1
-    
+        
+        ##UI## 업데이트
+        player.uihp.update(player)
+            
     def draw(player): #상태변화에 따른 이미지 드로우
         draw_rectangle(*player.get_bb())
         if player.state == state['IDLE']:
@@ -153,18 +182,26 @@ class Player:
             Run_Shoot_draw(player)
         elif player.state == state['DUCK']:
             Duck_draw(player)
-        if player.state == state['HIT']:
+        elif player.state == state['HIT']:
             Die_draw(player)
+        elif player.state == state['GHOST']:
+            Ghost_draw(player)
+
+        ##UI## DRAW
+        player.uihp.draw(player)
+
     def fire_bullet(player): #총알 상호작용 
         bullet =  Bullet(player)
         game_world.add_object(bullet,1)
         game_world.add_collision_pairs(play_state.boss,bullet,'boss:bullet')
         
     def handle_collision(player,other,group): #충돌처리 관리 
-        if other.sort == 'monster':
-            player.state = state['HIT']
+        if other.sort == 'monster' and player.state != state['GHOST']:
+          if player.isAttaked_count == 0:
             player.frame = 0
-            player.jump_count = 0
+            player.state = state['HIT']
+            player.isAttaked = True 
+            player.hp -= 1  
 
         elif other.sort == 'floor': #바닥체크
             player.dash_count = 1   
@@ -192,10 +229,10 @@ class Player:
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_RIGHT:  # 오른쪽 키 눌림
                 player.direction = direction['RIGHT']
-                if player.state != state['AIM'] or player.state != state['DUCK']:
+                if player.state != state['AIM'] or player.state != state['DUCK'] or player.state != state['GHOST']:
                     player.dirx += 1 # x값 증가 
 
-                if player.state != state['JUMPING'] and player.state != state['DASH'] and player.state != state['AIM']:
+                if player.state != state['JUMPING'] and player.state != state['DASH'] and player.state != state['AIM'] and player.state != state['GHOST']:
                     player.state = state['RUNNING']  #상태변경
                     player.frame = 0 # 상태 변경마다 프레임 초기화 필수 
                  
@@ -204,10 +241,10 @@ class Player:
                    
             elif event.key == SDLK_LEFT:
                 player.direction = direction['LEFT']  # 왼쪽 키 눌림
-                if player.state != state['AIM']  or player.state != state['DUCK'] :
+                if player.state != state['AIM']  or player.state != state['DUCK'] or player.state != state['GHOST']:
                    player.dirx -= 1
 
-                if player.state != state['JUMPING'] and player.state != state['DASH'] and player.state != state['AIM']:
+                if player.state != state['JUMPING'] and player.state != state['DASH'] and player.state != state['AIM'] and player.state != state['GHOST']:
                     player.state = state['RUNNING']  # 상태 변경
                     player.frame = 0 # 프레임 초기화
 
@@ -222,7 +259,8 @@ class Player:
                     player.frame = 0
 
             elif event.key == SDLK_x:
-                player.fire_bullet()
+                if player.state != state['DASH'] or player.state != state['GHOST']:
+                    player.fire_bullet()
                 if player.state != state['DASH'] and player.state != state['JUMPING']:
                     if player.state == state['IDLE']:
                         player.state = state['SHOOT']
@@ -256,7 +294,7 @@ class Player:
                     player.jump_height = 12
 
             elif event.key == SDLK_LSHIFT:
-                if player.state != state['AIM'] and player.dash_count  == 1 :
+                if player.state != state['AIM'] and player.dash_count  == 1:
                     player.state = state['DASH']
                     player.dash_count -= 1
                     player.dash_time = 0
@@ -264,19 +302,19 @@ class Player:
                     player.diry= 0
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_RIGHT:
-                if player.state == state['AIM'] or player.state == state['IDLE'] or player.state == state['DUCK']:
+                if player.state == state['AIM'] or player.state == state['IDLE'] or player.state == state['DUCK'] or player.state == state['GHOST']:
                     player.dirx =0 
                 else:
                     player.dirx -= 1
                 
-                if player.state != state['JUMPING'] and player.state != state['DASH']:
+                if player.state != state['JUMPING'] and player.state != state['DASH'] and player.state!= state['GHOST']:
                     player.state = state['IDLE']
                     player.frame = 0
                 if player.direction == direction['RIGHT'] and player.state == state['IDLE']:
                     player.direction = direction['RIGHT']
 
             elif event.key == SDLK_LEFT:
-                if player.state == state['AIM'] or player.state == state['IDLE'] or player.state == state['DUCK']:
+                if player.state == state['AIM'] or player.state == state['IDLE'] or player.state == state['DUCK'] or player.state == state['GHOST']:
                     player.dirx =0 
                 else:
                     player.dirx += 1
@@ -284,7 +322,7 @@ class Player:
                 if player.direction == direction['RIGHT'] and player.state == state['IDLE']:
                     player.direction = direction['LEFT']
                 
-                if player.state != state['JUMPING'] and player.state != state['DASH'] and player.state != state['AIM']:
+                if player.state != state['JUMPING'] and player.state != state['DASH'] and player.state != state['AIM'] and player.state != state['GHOST']:
                     player.state = state['IDLE']
                     player.frame = 0
             elif event.key == SDLK_DOWN:
@@ -393,9 +431,16 @@ def Duck_draw(player):
     else:
         player.l_duck[int(player.frame)].clip_composite_draw(0, 0, player.l_duck[int(player.frame)].w, player.l_duck[int(player.frame)].h, 0,'n', player.x, player.y-20,player.l_duck[int(player.frame)].w//1.2, player.l_duck[int(player.frame)].h//1.2)      
 def Die_update(player):
-    player.frame = (player.frame + DUCK_FRAMES_PER_ACTION * DUCK_ACTION_PER_TIME * game_framework.frame_time) % 5
+    player.frame = (player.frame + DUCK_FRAMES_PER_ACTION * DUCK_ACTION_PER_TIME * game_framework.frame_time) % 6
+    for i in range(1,3):
+        player.l_hit[i*2].opacify(0.5)
 def Die_draw(player):
     if player.direction == direction['LEFT']:
         player.l_hit[int(player.frame)].clip_composite_draw(0, 0, player.l_hit[int(player.frame)].w, player.l_hit[int(player.frame)].h, 0,'h', player.x, player.y,player.l_hit[int(player.frame)].w//1.2, player.l_hit[int(player.frame)].h//1.2)
     else:
         player.l_hit[int(player.frame)].clip_composite_draw(0, 0, player.l_hit[int(player.frame)].w, player.l_hit[int(player.frame)].h, 0,'n', player.x, player.y,player.l_hit[int(player.frame)].w//1.2, player.l_hit[int(player.frame)].h//1.2)
+def Ghost_update(player):
+    player.diry = 1
+    player.frame = (player.frame + DUCK_FRAMES_PER_ACTION * DUCK_ACTION_PER_TIME * game_framework.frame_time) % 24
+def Ghost_draw(player):
+    player.l_ghost[int(player.frame)].clip_composite_draw(0, 0, player.l_ghost[int(player.frame)].w, player.l_ghost[int(player.frame)].h, 0,'h', player.x, player.y,player.l_ghost[int(player.frame)].w//1.2, player.l_ghost[int(player.frame)].h//1.2)
