@@ -67,7 +67,6 @@ class Player:
         player.dash_count, player.jump_count = 0, 0
         player.dash_time = 0
         player.isAttaked,player.isAttaked_count  = False , 0 #무적판정 변수
-
         player.image_load() # 이미지 모두 로드 
         
         ##UI##
@@ -200,6 +199,7 @@ class Player:
           if player.isAttaked_count == 0:
             player.frame = 0
             player.state = state['HIT']
+            player.jump_count = 0 
             player.isAttaked = True 
             player.hp -= 1  
 

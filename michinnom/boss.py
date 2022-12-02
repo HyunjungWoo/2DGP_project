@@ -2,6 +2,7 @@ from pico2d import *
 import game_framework
 import game_world
 import play_state
+import effect
 px,py = 0,0
 
 MORPH_FRAMES_PER_ACTION = 42 # 프레임 장수(사진 갯수)
@@ -25,7 +26,7 @@ PUNCH_TIME_PER_ACTION   = 2.5 #속도 조절
 PUNCH_ACTION_PER_TIME   = 1.0 / PUNCH_TIME_PER_ACTION
 
 INTRO_FRAMES_PER_ACTION = 16 # 프레임 장수(사진 갯수)
-INTRO_TIME_PER_ACTION   = 1 #속도 조절
+INTRO_TIME_PER_ACTION   = 2 #속도 조절
 INTRO_ACTION_PER_TIME   = 1.0 /INTRO_TIME_PER_ACTION
 
 MOVE_FRAMES_PER_ACTION = 7 # 프레임 장수(사진 갯수)
@@ -75,8 +76,8 @@ class Boss_Goopy:
         for i in range(15): #비석 Intro 이미지
             a = load_image('monster/Goopy/Phase 3/Intro/slime_tomb_fall(%d).png' % i)
             Boss_Goopy.Tomb_Intro.append(a)
-        for i in range(7): #비석 move 이미지  
-            a = load_image('monster/Goopy/Phase 3/Move/Left/slime_tomb_move(%d).png' % i)
+        for i in range(4): #비석 move 이미지  
+            a = load_image('monster/Goopy/Phase 3/Move/Right/slime_tomb_move(%d).png' % i)
             Boss_Goopy.Tomb_Move.append(a)
         for i in range(15): #비석 Smash 이미지 
             a = load_image('monster/Goopy/Phase 3/Smash/slime_tomb_smash(%d).png' % i)
@@ -86,20 +87,25 @@ class Boss_Goopy:
             Boss_Goopy.Tomb_Die.append(a)
         
     def __init__(self):
-        self.hp = 1400#phase 1 = 336 , phase 2= 560 phase 3= 504 full.hp = 1400 
-        self.state = state['Punch']
+        self.load_images()
+        self.hp = 0 #phase 1 = 336 , phase 2= 560 phase 3= 504 full.hp = 1400 
+    #'Idle':1, 'Punch':2 ,'JUMP_D':3, 'JUMP_U':4,'Morph':5, 'Death':6, 'Tomb_Intro':7 ,'Tomb_Move':8 'Tomb_Die':9,'Tomb_Smash': 10}
+        self.state = state['Tomb_Die']
         self.sort = 'monster'
         self.frame = 0
         self.x,self.y = 600,100
         self.dir,self.diry = 1,0 #오른쪽
         self.jumpheight,self.mass = 4,3 #무게
-        self.jumpcount = 0 # 초기값 0 설정 
-        self.phase = 1
-        self.load_images()
-        self.change_morph = False
-        self.change_death  = False
-        self.smash_count = 2
-        self.smash_time =0.0
+        self.jumpcount = 3 # 초기값 0 설정 
+        self.phase = 3# phase 1 
+        self.change_morph = True  #False
+        self.change_death  = True #False
+        self.smash_count ,self.smash_time = 2, 0.0
+        self.bosshit,self.count,self.opacify = False,0.0, 1
+        
+        ##이펙트 처리 ##
+        self.bosseffect = effect.BossEffect(self)
+
     def update(self):
         #print(self.hp)
         if self.state == state['Idle']:
@@ -111,6 +117,7 @@ class Boss_Goopy:
         elif self.state == state['JUMP_U']:
             jump_U_update(self)  
         elif self.state == state['Morph']:
+            self.hp = 560
             morph_update(self)       
         elif self.state == state['Death']:
             death_update(self)  
@@ -148,7 +155,6 @@ class Boss_Goopy:
                 
                 self.state = state['Morph']
             elif self.hp < 504 and self. change_death == False:
-                
                 self.state = state['Death']
             elif self.phase == 1:
                 self.state = state['Punch']
@@ -157,7 +163,21 @@ class Boss_Goopy:
         if self.phase ==3:
             self.diry = 0
         self.y += self.diry*1 
+        print(self.count)
 
+        ##보스 피격처리 ##
+        if self.bosshit == True :
+            self.count += game_framework.frame_time
+            if self.count > 0.5:
+                self.bosshit = False
+                self.count = 0 
+        if self.bosshit == False:
+            self.opacify = 1
+
+        ## 보스 이펙트 업데이트 ##
+        self.bosseffect.update(self)
+    
+    #그려주기 
     def draw(self):
         draw_rectangle(*self.get_bb())
         if self.state == state['Idle']:
@@ -167,7 +187,6 @@ class Boss_Goopy:
                 punch_draw_phase1(self)
             elif self.phase == 2:
                 punch_draw_phase2(self)
-
         elif self.state == state['JUMP_D']:
             jump_D_draw(self)
         elif self.state == state['JUMP_U']:
@@ -176,7 +195,7 @@ class Boss_Goopy:
             morph_draw(self)
         elif self.state == state['Death']:
             death_draw(self)
-        if self.state == state['Tomb_Intro']:
+        elif self.state == state['Tomb_Intro']:
             Intro_draw(self) 
         elif self.state == state['Tomb_Move']:
             move_draw(self)
@@ -184,6 +203,11 @@ class Boss_Goopy:
             smash_draw(self)
         elif self.state == state['Tomb_Die']:
             die_draw(self)
+        self.bosseffect.draw(self)#Effect draw
+        
+        
+    
+    #사각형 좌표값 얻기 
     def get_bb(self):
         if self.phase ==1:
             if self.state == state['Punch'] and (int(self.frame) == 9 or int(self.frame) == 10):
@@ -207,12 +231,10 @@ class Boss_Goopy:
             return  self.x - 200,self.y -300,self.x +200, self.y-50   
         elif self.state == state['Tomb_Move'] or self.state == state['Tomb_Smash']:
             return self.x -70,self.y -30,self.x +70, self.y + 50
-       
-            
-                
-        else:
-            return self.x ,self.y,self.x,self.y
-        
+        elif self.state == state['Tomb_Intro'] or self.state == state['Tomb_Die']:
+            return self.x -70,self.y -30,self.x +70, self.y + 50
+    
+    ##충돌처리
     def handle_collision(self,other,group):
         if other.sort == 'floor':
             if self.phase ==1:
@@ -228,7 +250,13 @@ class Boss_Goopy:
             self.jumpcount += 1 
     
         if other.sort == 'bullet':
+            self.bosshit = True 
+            self.opacify = 0.5 
             game_world.remove_collision_pairs(self,other,'boss:bullet')
+        elif other.sort != 'bullet':
+            self.bosshit = False 
+        
+    ## 점프 구현 
     def Jump_Goopy(self):
 
         if self.jumpheight > 0:
@@ -264,6 +292,7 @@ def punch_update(self):
         self.frame  = (self.frame + PUNCH_FRAMES_PER_ACTION * PUNCH_ACTION_PER_TIME * game_framework.frame_time) % 19
         
 def punch_draw_phase1(self):
+    Boss_Goopy.Punch[int(self.frame)].opacify(self.opacify)
     global px,py
     if int(self.frame) <0:
         px,py = 0,0
@@ -297,15 +326,19 @@ def punch_draw_phase1(self):
         px,py = -5,-10
         self.jumpcount = 0
         self.frame = 0
+    
     if self.dir ==1: #오른쪽 
+        
         Boss_Goopy.Punch[int(self.frame)].clip_composite_draw(0, 0, Boss_Goopy.Punch[int(self.frame)].w, Boss_Goopy.Punch[int(self.frame)].h, 0, 'h', self.x+(-1*px), self.y+py,Boss_Goopy.Punch[int(self.frame)].w/1.5, Boss_Goopy.Punch[int(self.frame)].h/1.5)
     else:
+        
         Boss_Goopy.Punch[int(self.frame)].clip_composite_draw(0, 0, Boss_Goopy.Punch[int(self.frame)].w, Boss_Goopy.Punch[int(self.frame)].h, 0, 'n', self.x+px, self.y+py,Boss_Goopy.Punch[int(self.frame)].w/1.5, Boss_Goopy.Punch[int(self.frame)].h/1.5)
     px,py = 0,0
 
 def jump_D_update(self):
     self.frame  = (self.frame + JUMP_F_FRAMES_PER_ACTION * JUMP_F_ACTION_PER_TIME * game_framework.frame_time) % 3
 def jump_D_draw(self):
+    Boss_Goopy.jump_D[int(self.frame)].opacify(self.opacify)
     if self.dir == 1:#오른쪽
         Boss_Goopy.jump_D[int(self.frame)].clip_composite_draw(0, 0, self.jump_D[int(self.frame)].w, Boss_Goopy.jump_D[int(self.frame)].h, 0,'h', self.x, self.y,Boss_Goopy.jump_D[int(self.frame)].w//1.5, Boss_Goopy.jump_D[int(self.frame)].h//1.5)
     else:
@@ -313,6 +346,7 @@ def jump_D_draw(self):
 def jump_U_update(self):
     self.frame  = (self.frame + JUMP_F_FRAMES_PER_ACTION * JUMP_F_ACTION_PER_TIME * game_framework.frame_time) % 3
 def jump_U_draw(self):
+    Boss_Goopy.jump_U[int(self.frame)].opacify(self.opacify)
     if self.dir == 1:#오른쪽
         Boss_Goopy.jump_U[int(self.frame)].clip_composite_draw(0, 0, self.jump_U[int(self.frame)].w, Boss_Goopy.jump_U[int(self.frame)].h, 0,'h', self.x, self.y,Boss_Goopy.jump_U[int(self.frame)].w//1.5, Boss_Goopy.jump_U[int(self.frame)].h//1.5)
     else:
@@ -324,6 +358,7 @@ def jump_F_update(self): #제자리 점프 프레임 설정
         self.frame= (self.frame + Idle_FRAMES_PER_ACTION * Idle_ACTION_PER_TIME  * game_framework.frame_time) % 8
 
 def jump_F_draw(self): #제자리 점프 그리기
+    Boss_Goopy.jump_F[int(self.frame)].opacify(self.opacify)
     if self.dir == 1:#오른쪽
         Boss_Goopy.jump_F[int(self.frame)].clip_composite_draw(0, 0, self.jump_F[int(self.frame)].w, Boss_Goopy.jump_F[int(self.frame)].h, 0,'h', self.x, self.y,Boss_Goopy.jump_F[int(self.frame)].w//1.5,Boss_Goopy.jump_F[int(self.frame)].h//1.5)
     else:
@@ -389,6 +424,7 @@ def morph_draw(self):
     else: #LEFT
         Boss_Goopy.Morph[int(self.frame)].clip_composite_draw(0, 0, self.Morph[int(self.frame)].w, Boss_Goopy.Morph[int(self.frame)].h, 0,'n', self.x+px, self.y+py,Boss_Goopy.Morph[int(self.frame)].w//1.5, Boss_Goopy.Morph[int(self.frame)].h//1.5)
 def punch_draw_phase2(self):
+    Boss_Goopy.Punch[int(self.frame)].opacify(self.opacify)
     global px,py
     if int(self.frame) == 5: px ,py = -30,-2
     elif int(self.frame) == 6: px,py = 22,-5
@@ -412,13 +448,14 @@ def punch_draw_phase2(self):
 def death_update(self):
     self.frame  = (self.frame + DEATH_FRAMES_PER_ACTION *DEATH_ACTION_PER_TIME * game_framework.frame_time) % 20
 def death_draw(self):
+    Boss_Goopy.Death[int(self.frame)].opacify(self.opacify)
     if int(self.frame)== 19 and self.change_death == False:
         phase3_monster = Fall_Tomb(self)
         game_world.add_object(phase3_monster,1)
-        game_world.add_collision_pairs(game_world.objects[1][0],phase3_monster,'Boss:Tomb')
-        game_world.add_collision_pairs(phase3_monster,game_world.objects[0][0],'Tomb:background')
+        game_world.add_collision_pairs(play_state.boss,phase3_monster,'Boss:Tomb')
+        game_world.add_collision_pairs(phase3_monster,play_state.back_ground,'Tomb:background')
         self.change_death = True
-        
+
     if self.dir == 1:#오른쪽
         Boss_Goopy.Death[int(self.frame)].clip_composite_draw(0, 0, self.Death[int(self.frame)].w, Boss_Goopy.Death[int(self.frame)].h, 0,'h', self.x, self.y,Boss_Goopy.Death[int(self.frame)].w//1.5,Boss_Goopy.Death[int(self.frame)].h//1.5)
     else:
@@ -435,16 +472,18 @@ def Intro_draw(self):
     else:
         Boss_Goopy.Tomb_Intro[int(self.frame)].clip_composite_draw(0, 0, Boss_Goopy.Tomb_Intro[int(self.frame)].w, Boss_Goopy.Tomb_Intro[int(self.frame)].h, 0,'n', self.x, self.y,Boss_Goopy.Tomb_Intro[int(self.frame)].w//1.2, Boss_Goopy.Tomb_Intro[int(self.frame)].h//1.2)
 def move_update(self):
-    self.frame = (self.frame +MOVE_FRAMES_PER_ACTION * MOVE_ACTION_PER_TIME*game_framework.frame_time ) % 7
+    self.frame = (self.frame +MOVE_FRAMES_PER_ACTION * MOVE_ACTION_PER_TIME*game_framework.frame_time ) % 4
 def move_draw(self):
+    Boss_Goopy.Tomb_Move[int(self.frame)].opacify(self.opacify)
     if self.dir == 1:#오른쪽
-        Boss_Goopy.Tomb_Move[int(self.frame)].clip_composite_draw(0, 0,Boss_Goopy.Tomb_Move[int(self.frame)].w,Boss_Goopy.Tomb_Move[int(self.frame)].h, 0,'h', self.x, self.y,Boss_Goopy.Tomb_Move[int(self.frame)].w//1.2,Boss_Goopy.Tomb_Move[int(self.frame)].h//1.2)
+        Boss_Goopy.Tomb_Move[int(self.frame)].clip_composite_draw(0, 0,Boss_Goopy.Tomb_Move[int(self.frame)].w,Boss_Goopy.Tomb_Move[int(self.frame)].h, 0,'n', self.x, self.y,Boss_Goopy.Tomb_Move[int(self.frame)].w//1.2,Boss_Goopy.Tomb_Move[int(self.frame)].h//1.2)
     else:
-        Boss_Goopy.Tomb_Move[int(self.frame)].clip_composite_draw(0, 0, Boss_Goopy.Tomb_Move[int(self.frame)].w, Boss_Goopy.Tomb_Move[int(self.frame)].h, 0,'n', self.x, self.y,Boss_Goopy.Tomb_Move[int(self.frame)].w//1.2, Boss_Goopy.Tomb_Move[int(self.frame)].h//1.2)
+        Boss_Goopy.Tomb_Move[int(self.frame)].clip_composite_draw(0, 0, Boss_Goopy.Tomb_Move[int(self.frame)].w, Boss_Goopy.Tomb_Move[int(self.frame)].h, 0,'h', self.x, self.y,Boss_Goopy.Tomb_Move[int(self.frame)].w//1.2, Boss_Goopy.Tomb_Move[int(self.frame)].h//1.2)
 def smash_update(self):
     self.frame = (self.frame + SMASH_FRAMES_PER_ACTION * SMASH_ACTION_PER_TIME * game_framework.frame_time) %15
     
 def smash_draw(self):
+    Boss_Goopy.Tomb_Smash[int(self.frame)].opacify(self.opacify)
     global px,py
     if int(self.frame)   == 6 : px ,py = 0,35
     elif int(self.frame) == 7 : px,py = 0,10
@@ -466,6 +505,7 @@ def die_update(self):
     self.frame = (self.frame +DIE_FRAMES_PER_ACTION * DIE_ACTION_PER_TIME*game_framework.frame_time )%6
 def die_draw(self):
     if self.dir == 1:#오른쪽
+        
         Boss_Goopy.Tomb_Die[int(self.frame)].clip_composite_draw(0, 0,Boss_Goopy.Tomb_Die[int(self.frame)].w,Boss_Goopy.Tomb_Die[int(self.frame)].h, 0,'h', self.x, self.y,Boss_Goopy.Tomb_Die[int(self.frame)].w//1.2,Boss_Goopy.Tomb_Die[int(self.frame)].h//1.2)
     else:
         Boss_Goopy.Tomb_Die[int(self.frame)].clip_composite_draw(0, 0, Boss_Goopy.Tomb_Die[int(self.frame)].w, Boss_Goopy.Tomb_Die[int(self.frame)].h, 0,'n', self.x, self.y,Boss_Goopy.Tomb_Die[int(self.frame)].w//1.2, Boss_Goopy.Tomb_Die[int(self.frame)].h//1.2)
