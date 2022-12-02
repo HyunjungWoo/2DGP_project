@@ -93,7 +93,7 @@ class Boss_Goopy:
         self.state = state['Tomb_Die']
         self.sort = 'monster'
         self.frame = 0
-        self.x,self.y = 600,100
+        self.x,self.y = 600,300  # 기본값 y = 100 
         self.dir,self.diry = 1,0 #오른쪽
         self.jumpheight,self.mass = 4,3 #무게
         self.jumpcount = 3 # 초기값 0 설정 
@@ -105,6 +105,7 @@ class Boss_Goopy:
         
         ##이펙트 처리 ##
         self.bosseffect = effect.BossEffect(self)
+       
 
     def update(self):
         #print(self.hp)
@@ -163,7 +164,7 @@ class Boss_Goopy:
         if self.phase ==3:
             self.diry = 0
         self.y += self.diry*1 
-        print(self.count)
+        
 
         ##보스 피격처리 ##
         if self.bosshit == True :
@@ -203,8 +204,11 @@ class Boss_Goopy:
             smash_draw(self)
         elif self.state == state['Tomb_Die']:
             die_draw(self)
-        self.bosseffect.draw(self)#Effect draw
+          
+            
         
+        #Effect draw
+        self.bosseffect.draw(self)
         
     
     #사각형 좌표값 얻기 
@@ -289,8 +293,7 @@ def punch_update(self):
     if self.phase == 1:
         self.frame  = (self.frame + PUNCH_FRAMES_PER_ACTION * PUNCH_ACTION_PER_TIME * game_framework.frame_time) % 16
     else: 
-        self.frame  = (self.frame + PUNCH_FRAMES_PER_ACTION * PUNCH_ACTION_PER_TIME * game_framework.frame_time) % 19
-        
+        self.frame  = (self.frame + PUNCH_FRAMES_PER_ACTION * PUNCH_ACTION_PER_TIME * game_framework.frame_time) % 19     
 def punch_draw_phase1(self):
     Boss_Goopy.Punch[int(self.frame)].opacify(self.opacify)
     global px,py
@@ -334,7 +337,6 @@ def punch_draw_phase1(self):
         
         Boss_Goopy.Punch[int(self.frame)].clip_composite_draw(0, 0, Boss_Goopy.Punch[int(self.frame)].w, Boss_Goopy.Punch[int(self.frame)].h, 0, 'n', self.x+px, self.y+py,Boss_Goopy.Punch[int(self.frame)].w/1.5, Boss_Goopy.Punch[int(self.frame)].h/1.5)
     px,py = 0,0
-
 def jump_D_update(self):
     self.frame  = (self.frame + JUMP_F_FRAMES_PER_ACTION * JUMP_F_ACTION_PER_TIME * game_framework.frame_time) % 3
 def jump_D_draw(self):
@@ -356,7 +358,6 @@ def jump_F_update(self): #제자리 점프 프레임 설정
         self.frame= (self.frame + Idle_FRAMES_PER_ACTION * Idle_ACTION_PER_TIME  * game_framework.frame_time) % 9
     elif self.phase == 2:
         self.frame= (self.frame + Idle_FRAMES_PER_ACTION * Idle_ACTION_PER_TIME  * game_framework.frame_time) % 8
-
 def jump_F_draw(self): #제자리 점프 그리기
     Boss_Goopy.jump_F[int(self.frame)].opacify(self.opacify)
     if self.dir == 1:#오른쪽
@@ -462,7 +463,6 @@ def death_draw(self):
         Boss_Goopy.Death[int(self.frame)].clip_composite_draw(0, 0, self.Death[int(self.frame)].w, Boss_Goopy.Death[int(self.frame)].h, 0,'n', self.x, self.y,Boss_Goopy.Death[int(self.frame)].w//1.5, Boss_Goopy.Death[int(self.frame)].h//1.5)
 def Intro_update(self):
     self.frame = (self.frame +INTRO_FRAMES_PER_ACTION * INTRO_ACTION_PER_TIME*game_framework.frame_time )%16
-    
 def Intro_draw(self):
     if int(self.frame) ==15:   
         self.frame = 0     
@@ -481,7 +481,6 @@ def move_draw(self):
         Boss_Goopy.Tomb_Move[int(self.frame)].clip_composite_draw(0, 0, Boss_Goopy.Tomb_Move[int(self.frame)].w, Boss_Goopy.Tomb_Move[int(self.frame)].h, 0,'h', self.x, self.y,Boss_Goopy.Tomb_Move[int(self.frame)].w//1.2, Boss_Goopy.Tomb_Move[int(self.frame)].h//1.2)
 def smash_update(self):
     self.frame = (self.frame + SMASH_FRAMES_PER_ACTION * SMASH_ACTION_PER_TIME * game_framework.frame_time) %15
-    
 def smash_draw(self):
     Boss_Goopy.Tomb_Smash[int(self.frame)].opacify(self.opacify)
     global px,py
@@ -509,7 +508,6 @@ def die_draw(self):
         Boss_Goopy.Tomb_Die[int(self.frame)].clip_composite_draw(0, 0,Boss_Goopy.Tomb_Die[int(self.frame)].w,Boss_Goopy.Tomb_Die[int(self.frame)].h, 0,'h', self.x, self.y,Boss_Goopy.Tomb_Die[int(self.frame)].w//1.2,Boss_Goopy.Tomb_Die[int(self.frame)].h//1.2)
     else:
         Boss_Goopy.Tomb_Die[int(self.frame)].clip_composite_draw(0, 0, Boss_Goopy.Tomb_Die[int(self.frame)].w, Boss_Goopy.Tomb_Die[int(self.frame)].h, 0,'n', self.x, self.y,Boss_Goopy.Tomb_Die[int(self.frame)].w//1.2, Boss_Goopy.Tomb_Die[int(self.frame)].h//1.2)
-
 
 
 class Fall_Tomb:
