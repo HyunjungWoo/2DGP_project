@@ -41,8 +41,7 @@ DIE_FRAMES_PER_ACTION = 6 # 프레임 장수(사진 갯수)
 DIE_TIME_PER_ACTION   = 1 #속도 조절
 DIE_ACTION_PER_TIME   = 1.0 / DIE_TIME_PER_ACTION
 
-state = { 'Idle':1, 'Punch':2 ,'JUMP_D':3, 'JUMP_U':4,'Morph':5, 'Death':6, 'Tomb_Intro':7 ,'Tomb_Move':8,
- 'Tomb_Die':9,'Tomb_Smash': 10}
+state = { 'Idle':1, 'Punch':2 ,'JUMP_D':3, 'JUMP_U':4,'Morph':5, 'Death':6, 'Tomb_Intro':7 ,'Tomb_Move':8, 'Tomb_Die':9,'Tomb_Smash': 10}
 class Boss_Goopy:
     jump_F =[]
     Punch = []
@@ -88,18 +87,18 @@ class Boss_Goopy:
         
     def __init__(self):
         self.load_images()
-        self.hp = 0 #phase 1 = 336 , phase 2= 560 phase 3= 504 full.hp = 1400 
+        self.hp = 1400 #phase 1 = 336 , phase 2= 560 phase 3= 504 full.hp = 1400 
     #'Idle':1, 'Punch':2 ,'JUMP_D':3, 'JUMP_U':4,'Morph':5, 'Death':6, 'Tomb_Intro':7 ,'Tomb_Move':8 'Tomb_Die':9,'Tomb_Smash': 10}
-        self.state = state['Tomb_Die']
+        self.state = state['Idle']
         self.sort = 'monster'
         self.frame = 0
-        self.x,self.y = 600,300  # 기본값 y = 100 
+        self.x,self.y = 600,100  # 기본값 y = 100 
         self.dir,self.diry = 1,0 #오른쪽
         self.jumpheight,self.mass = 4,3 #무게
         self.jumpcount = 3 # 초기값 0 설정 
-        self.phase = 3# phase 1 
-        self.change_morph = True  #False
-        self.change_death  = True #False
+        self.phase = 1# phase 1 
+        self.change_morph = False  #False
+        self.change_death  = False #False
         self.smash_count ,self.smash_time = 2, 0.0
         self.bosshit,self.count,self.opacify = False,0.0, 1
         
@@ -523,14 +522,14 @@ class Fall_Tomb:
         Tomb.frame = 0
         Tomb.state = None
         Tomb.floor = False
-    
     def update(Tomb):
         if Tomb.diry != 0:
             Tomb.y -= Tomb.diry *3   
+        
     def draw(Tomb):
         draw_rectangle(*Tomb.get_bb())
         Tomb.image.draw(Tomb.x, Tomb.y, Tomb.image.w//1.2, Tomb.image.h//1.2)
-        
+            
     def get_bb(Tomb): 
         return Tomb.x - 150, Tomb.y - 150 , Tomb.x + 150, Tomb.y + 150
    
