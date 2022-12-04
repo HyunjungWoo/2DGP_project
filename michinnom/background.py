@@ -1,5 +1,6 @@
 from pico2d import * 
 import game_framework
+import play_state
 STREAM_FRAMES_PER_ACTION = 12 # 프레임 장수(사진 갯수)
 STREAM_TIME_PER_ACTION   = 3.0 #속도 조절
 STREAM_ACTION_PER_TIME   = 1.0 / STREAM_TIME_PER_ACTION
@@ -25,6 +26,11 @@ class Back_ground:
         self.image_mushroom_1 = load_image('monster/Goopy/Background/slime_bg_fg_mushrooms_left.png')
         self.image_mushroom_2 = load_image('monster/Goopy/Background/slime_bg_fg_mushrooms_right.png')
 
+        #배경음악
+        # if game_framework.stack == [play_state]:
+        self.bgm = load_music('Play_state.mp3')
+        self.bgm.set_volume(32)
+        self.bgm.repeat_play()
     def update(self):
         self.frame  = (self.frame + STREAM_FRAMES_PER_ACTION * STREAM_ACTION_PER_TIME * game_framework.frame_time) % 12
         self.image_stream = load_image('monster/Goopy/Background/slime_bg_strem(%d).png' % self.frame)    

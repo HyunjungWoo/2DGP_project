@@ -53,6 +53,8 @@ class Boss_Goopy:
     Tomb_Move = []
     Tomb_Die = []
     Tomb_Smash = []
+    ##사운드
+    # Jump_sound = None
     def load_images(self):
         for i in range(9): #Idle 제자리점프  이미지 리소스
             a = load_image('monster/Goopy/Phase 1/Jump/slime_jump_%d.png' % i)
@@ -87,7 +89,7 @@ class Boss_Goopy:
         
     def __init__(self):
         self.load_images()
-        self.hp = 1400 #phase 1 = 336 , phase 2= 560 phase 3= 504 full.hp = 1400 
+        self.hp = 0 #phase 1 = 336 , phase 2= 560 phase 3= 504 full.hp = 1400 
     #'Idle':1, 'Punch':2 ,'JUMP_D':3, 'JUMP_U':4,'Morph':5, 'Death':6, 'Tomb_Intro':7 ,'Tomb_Move':8 'Tomb_Die':9,'Tomb_Smash': 10}
         self.state = state['Idle']
         self.sort = 'monster'
@@ -95,7 +97,7 @@ class Boss_Goopy:
         self.x,self.y = 600,100  # 기본값 y = 100 
         self.dir,self.diry = 1,0 #오른쪽
         self.jumpheight,self.mass = 4,3 #무게
-        self.jumpcount = 3 # 초기값 0 설정 
+        self.jumpcount = 0 # 초기값 0 설정 
         self.phase = 1# phase 1 
         self.change_morph = False  #False
         self.change_death  = False #False
@@ -104,12 +106,16 @@ class Boss_Goopy:
         
         ##이펙트 처리 ##
         self.bosseffect = effect.BossEffect(self)
-       
+        ## 사운드 ##
+        # if Boss_Goopy.Jump_sound == None:
+        #     Boss_Goopy.Jump_sound = load_music('monster/slime_small_jump_01.wav')
+        # Boss_Goopy.Jump_sound.set_volume(1)
 
     def update(self):
-        #print(self.hp)
+        print(self.hp)
         if self.state == state['Idle']:
             jump_F_update(self)
+            #Boss_Goopy.Jump_sound.play(1)
         elif self.state == state['Punch']:
             punch_update(self)
         elif self.state == state['JUMP_D']:
@@ -117,7 +123,6 @@ class Boss_Goopy:
         elif self.state == state['JUMP_U']:
             jump_U_update(self)  
         elif self.state == state['Morph']:
-            self.hp = 560
             morph_update(self)       
         elif self.state == state['Death']:
             death_update(self)  
@@ -203,8 +208,6 @@ class Boss_Goopy:
             smash_draw(self)
         elif self.state == state['Tomb_Die']:
             die_draw(self)
-          
-            
         
         #Effect draw
         self.bosseffect.draw(self)
@@ -254,7 +257,7 @@ class Boss_Goopy:
     
         if other.sort == 'bullet':
             self.bosshit = True 
-            self.opacify = 0.5 
+            self.opacify = 0.8
             game_world.remove_collision_pairs(self,other,'boss:bullet')
         elif other.sort != 'bullet':
             self.bosshit = False 

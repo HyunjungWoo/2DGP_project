@@ -2,19 +2,29 @@ import game_framework
 from pico2d import *
 import play_state
 import logo_state
+import game_world
+from background import Back_ground
 image_ready_and_Wallop,image_character, image_boss_monster = None,None,None
-
+bgm= None
 count_logo,count_chracter,count_boss = 2,1,1
+back_ground = None
 def enter():
+    global back_ground,bgm
+    back_ground = Back_ground()
     global  image_ready_and_Wallop
     global image_character
     global image_boss_monster
+    bgm = load_music('ready_state.mp3')
+    bgm.set_volume(20)
+    bgm.play()
+
 
 def exit():
-    global image_ready_and_Wallop,image_character, image_boss_monster
-    del image_ready_and_Wallop,image_character , image_boss_monster
+    global image_ready_and_Wallop,image_character, image_boss_monster,back_ground,bgm
+    del image_ready_and_Wallop,image_character , image_boss_monster,back_ground,bgm
 
 def update():
+    back_ground.update()
     logo_update()
     chracter_update()
     boss_update()
@@ -47,6 +57,7 @@ def boss_update():
     
 def draw():
     clear_canvas()
+    back_ground.draw()
     image_ready_and_Wallop.clip_draw_to_origin(0, 0, image_ready_and_Wallop.w, image_ready_and_Wallop.h,0, 30, image_ready_and_Wallop.w*2.5, image_ready_and_Wallop.h*2.5)
     image_character.clip_draw_to_origin(0, 0, image_character.w, image_character.h, 100, 50, image_character.w/1.2, image_character.h/1.2)
     image_boss_monster.clip_draw_to_origin(0, 0, image_boss_monster.w, image_boss_monster.h, 780, 50, w=None, h=None)

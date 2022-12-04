@@ -10,7 +10,10 @@ class Bullet:
         self.sort = 'bullet'
         self.range = 0
         self.x = player.x + 25
-        self.y = player.y + 20
+        if player.state == 7:
+            self.y = player.y- 20 
+        else:
+            self.y = player.y + 20
         self.isOn = False
         if Bullet.image == None:
             Bullet.image = load_image('resource/aim/shoot_img/3.png')

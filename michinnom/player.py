@@ -4,6 +4,7 @@ import game_world
 from bullet import Bullet
 from boss import Boss_Goopy
 import ui
+import effect
 
 import play_state
 state = {'IDLE': 0, 'RUNNING' : 1,'JUMPING':2,'AIM' : 3,'DASH':4, 'SHOOT':5, 'RUN_SHOOT':6, 'DUCK':7,'HIT':8,'GHOST':9}
@@ -55,6 +56,10 @@ class Player:
     l_hit = []
     l_dash = []
     l_ghost = []
+    dash_sound = None
+    hit_sound = None
+    jump_sound = None
+    shoot_sound = None
     def __init__(player):
         player.sort = 'player'
         player.hp = 3
@@ -68,10 +73,26 @@ class Player:
         player.dash_time = 0
         player.isAttaked,player.isAttaked_count  = False , 0 #무적판정 변수
         player.image_load() # 이미지 모두 로드 
-        
+        player.jumpisFloor = False 
         ##UI##
         player.uihp = ui.HpUi(player)
+
+        ##Effect
+        player.effect = effect.PlayerEffect(player)
         
+        ##Sound 
+        if Player.dash_sound == None:
+            Player.dash_sound = load_wav('resource/Dash/player_dash_03.wav')
+            Player.dash_sound.set_volume(10)
+        if Player.hit_sound == None:
+            Player.hit_sound = load_wav('resource/Hit/player_hit_01.wav')
+            Player.hit_sound.set_volume(10)
+        if Player.jump_sound == None:
+            Player.jump_sound = load_wav('resource/Jump/player_jump_03.wav')
+            Player.jump_sound.set_volume(10)
+        if Player.shoot_sound == None:
+            Player.shoot_sound = load_wav('resource/Shoot/player_weapon_peashot_001.wav')
+            Player.shoot_sound.set_volume(60)
     def image_load(player):
         for i in range(5): #idle 이미지 리스트 저장 
             a = load_image('resource/idle/idle(%d).png' % i)
@@ -133,6 +154,7 @@ class Player:
             Aim_update(player)
         elif player.state == state['DASH']:
             Dash_update(player)
+           
         elif player.state == state['SHOOT']:
             Shoot_update(player)
         elif player.state == state['RUN_SHOOT']:
@@ -162,9 +184,11 @@ class Player:
         
         ##UI## 업데이트
         player.uihp.update(player)
+        player.effect.update(player)
             
     def draw(player): #상태변화에 따른 이미지 드로우
         draw_rectangle(*player.get_bb())
+        player.effect.draw(player)## EFFECT 캐릭터 뒤에 나와야하기 때문에 
         if player.state == state['IDLE']:
             Idle_draw(player)
         elif player.state == state['RUNNING']:
@@ -202,17 +226,19 @@ class Player:
             player.jump_count = 0 
             player.isAttaked = True 
             player.hp -= 1  
+            Player.hit_sound.play(1)
 
         elif other.sort == 'floor': #바닥체크
             player.dash_count = 1   
             if player.state == state['JUMPING']:
+                player.jumpisFloor = True 
                 player.jump_count = 0
                 player.state = state['IDLE'] 
                 player.frame = 0     
             player.jump_height =0
             player.y = 100
             player.diry = 0
-            
+        
     def gravity(player): #상시 중력 처리 
         if player.state != state['DASH']:
             if player.jump_height > 3:
@@ -260,6 +286,7 @@ class Player:
 
             elif event.key == SDLK_x:
                 if player.state != state['DASH'] or player.state != state['GHOST']:
+                    Player.shoot_sound.play(1)
                     player.fire_bullet()
                 if player.state != state['DASH'] and player.state != state['JUMPING']:
                     if player.state == state['IDLE']:
@@ -292,10 +319,11 @@ class Player:
                     player.state = state['JUMPING'] 
                     player.frame = 0 
                     player.jump_height = 12
-
+                    Player.jump_sound.play(1)
             elif event.key == SDLK_LSHIFT:
                 if player.state != state['AIM'] and player.dash_count  == 1:
                     player.state = state['DASH']
+                    Player.dash_sound.play(1)
                     player.dash_count -= 1
                     player.dash_time = 0
                     #player.dash_count  = 0
@@ -401,10 +429,12 @@ def Dash_update(player):
     elif player.direction == direction['LEFT']:  
         player.x -= 10
     player.dash_time += game_framework.frame_time
-    if player.dash_time> 0.4: 
+    if player.dash_time> 0.4:
         player.state = state['JUMPING']
         player.frame = 0
-        player.jump_height = 0          
+        player.jump_height = 0  
+   
+
 def Dash_draw(player):
     if player.direction == direction['RIGHT']:
         player.l_dash[int(player.frame)].clip_composite_draw(0, 0, player.l_dash[int(player.frame)].w, player.l_dash[int(player.frame)].h, 0,
@@ -435,6 +465,7 @@ def Die_update(player):
     for i in range(1,3):
         player.l_hit[i*2].opacify(0.5)
 def Die_draw(player):
+
     if player.direction == direction['LEFT']:
         player.l_hit[int(player.frame)].clip_composite_draw(0, 0, player.l_hit[int(player.frame)].w, player.l_hit[int(player.frame)].h, 0,'h', player.x, player.y,player.l_hit[int(player.frame)].w//1.2, player.l_hit[int(player.frame)].h//1.2)
     else:

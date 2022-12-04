@@ -6,11 +6,12 @@ from backscreen import BackScreen
 import game_framework
 import game_world
 import os
-
+import die_state
+import clear_state
 player = None
 boss = None
 back_ground = None
-screen = None
+bgm = None
 def handle_events():
     events = get_events()
     for event in events:
@@ -18,14 +19,19 @@ def handle_events():
             game_framework.quit()
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_ESCAPE):
             game_framework.quit()
+        elif player.hp ==0 and SDLK_r:
+            game_framework.push_state(die_state)
+        elif boss.hp <= 0:
+            game_framework.push_state(clear_state)
         else:
             player.handle_event(event)
 
 # 초기화
 def enter():
-    global player,boss
+    global player,boss,bgm
     player = Player()
     boss = Boss_Goopy()
+    
     back_ground = Back_ground()
     game_world.add_object(boss,1)
     game_world.add_object(player, 1)
@@ -34,14 +40,12 @@ def enter():
     game_world.add_collision_pairs(boss,back_ground,'boss:background')
     game_world.add_collision_pairs(player,back_ground,'player:background')
     
-    
-
 # 종료
 def exit():
     game_world.clear()
 
 def update():
-    global player,boss
+    
     for game_object in game_world.all_objects():
         game_object.update()
     
